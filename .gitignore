@@ -1,0 +1,6 @@
+*.o
+*.dbgo
+*.swp
+heat*
+
+objects/
