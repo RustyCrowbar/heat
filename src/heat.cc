@@ -3374,7 +3374,7 @@ void solution_write ( int node_num, double u[], char *u_file_name )
 }
 //****************************************************************************80
 
-void timestamp ( void )
+void timestamp()
 
     //****************************************************************************80
     //
@@ -3405,18 +3405,17 @@ void timestamp ( void )
 {
 # define TIME_SIZE 40
 
-    static char time_buffer[TIME_SIZE];
-    const struct tm *tm;
+    char time_buffer[TIME_SIZE];
+    struct tm *tm;
     size_t len;
     time_t now;
 
-    now = time ( NULL );
-    tm = localtime ( &now );
-
-    len = strftime ( time_buffer, TIME_SIZE, "%d %B %Y %I:%M:%S %p", tm );
-
+    now = time(NULL); //Original code
+    //time(NULL); //We have a segfault, here.
+    tm = localtime(&now);
+    len = strftime(time_buffer, TIME_SIZE, "%d %B %Y %I:%M:%S %p", tm);
     cout << time_buffer << "\n";
-
+    //cout << "DELETE_ME" << endl;
     return;
 # undef TIME_SIZE
 }

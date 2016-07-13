@@ -1,5 +1,5 @@
 CC		= clang++
-CPPFLAGS	= -Wall -Wextra -std=c++1y
+CPPFLAGS	= -Wall -Wextra -std=c++03
 DBGTARGET  	= ${TARGET}_dbg
 DBGOBJS		= $(patsubst ${SRCDIR}%,${OBJDIR}%,${SRCS:.cc=.dbgo})
 DBGFLAGS	= -O0 -ggdb3
@@ -32,9 +32,6 @@ clean:
 
 debug: ${DBGTARGET}
 	gdb ${DBGTARGET} -x debug_script
-
-debug_auto: ${DBGTARGET}
-	gdb ${DBGTARGET} -x debug_script_auto
 
 run: ${DBGTARGET}
 	./${DBGTARGET}
