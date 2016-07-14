@@ -124,7 +124,7 @@ int main(void)
     int local;
     int node;
     int *node_boundary;
-    char *node_eps_file_name;
+    char *node_eps_file_name = "rectangle_nodes.eps";
     char *node_txt_file_name = "rectangle_nodes.txt";
     bool node_label;
     int node_show;
@@ -144,7 +144,7 @@ int main(void)
     char *triangulation_txt_file_name = "rectangle_elements.txt";
     double *u;
     double *u_exact;
-    char u_file_name[100];
+    char u_file_name[] = "rectangle_u0000.txt";
     double *u_old;
     double wq[QUAD_NUM];
     double xl = 0.0;
@@ -153,9 +153,6 @@ int main(void)
     double yb = 0.0;
     double yq[QUAD_NUM*ELEMENT_NUM];
     double yt = 1.0;
-
-    strcpy(node_eps_file_name, "rectangle_nodes.eps");
-    strcpy(u_file_name, "rectangle_u0000.txt");
 
     timestamp();
 
