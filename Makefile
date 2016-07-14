@@ -1,5 +1,5 @@
 CC		= clang++
-CPPFLAGS	= -Wall -Wextra -std=c++03
+CPPFLAGS	= -Wall -Wextra -std=c++14
 DBGTARGET  	= ${TARGET}_dbg
 DBGOBJS		= $(patsubst ${SRCDIR}%,${OBJDIR}%,${SRCS:.cc=.dbgo})
 DBGFLAGS	= -O0 -ggdb3
@@ -28,7 +28,7 @@ ${DBGTARGET}: ${DBGOBJS}
 	${CC} ${DBGOBJS} ${DBGFLAGS} -o ${DBGTARGET}
 
 clean:
-	rm -rf ${TARGET} ${DBGTARGET} ${OBJDIR} core
+	rm -rf ${TARGET} ${DBGTARGET} ${OBJDIR} core *.txt *.eps
 
 debug: ${DBGTARGET}
 	gdb ${DBGTARGET} -x debug_script
