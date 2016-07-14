@@ -144,7 +144,7 @@ int main(void)
     char *triangulation_txt_file_name = "rectangle_elements.txt";
     double *u;
     double *u_exact;
-    char u_file_name[] = "rectangle_u0000.txt";
+    char u_file_name[] = "rectangle_u0001.txt";
     double *u_old;
     double wq[QUAD_NUM];
     double xl = 0.0;
@@ -1993,7 +1993,10 @@ void solution_write ( int node_num, double u[], char *u_file_name )
 
     for ( node = 0; node < node_num; node++ )
     {
-        u_file << setw(14) << u[node] << "\n";
+	if ((node % 9) == 0 && (node > 0))
+		u_file << std::endl << u[node] << " ";
+	else
+		u_file << u[node] << " ";
     }
 
     u_file.close ( );
