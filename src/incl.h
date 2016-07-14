@@ -25,18 +25,6 @@
     //
     //      Ut approximately equal to ( U - Uold ) / dT
     //
-    //  Licensing:
-    //
-    //    This code is distributed under the GNU LGPL license.
-    //
-    //  Modified:
-    //
-    //    01 May 2006
-    //
-    //  Author:
-    //
-    //    John Burkardt
-    //
     //  Parameters:
     //
     //    Input, int NODE_NUM, the number of nodes.
@@ -84,18 +72,6 @@ void adjust_backward_euler(int node_num, double node_xy[], int nnodes,
     //
     //    ADJUST_BOUNDARY modifies the linear system for boundary conditions.
     //
-    //  Licensing:
-    //
-    //    This code is distributed under the GNU LGPL license.
-    //
-    //  Modified:
-    //
-    //    17 April 2006
-    //
-    //  Author:
-    //
-    //    John Burkardt
-    //
     //  Parameters:
     //
     //    Input, int NODE_NUM, the number of nodes.
@@ -130,18 +106,6 @@ void adjust_boundary(int node_num, double node_xy[], int node_boundary[],
     //    The areas of the elements are needed in order to adjust
     //    the integral estimates produced by the quadrature formulas.
     //
-    //  Licensing:
-    //
-    //    This code is distributed under the GNU LGPL license.
-    //
-    //  Modified:
-    //
-    //    07 April 2004
-    //
-    //  Author:
-    //
-    //    C++ version by John Burkardt
-    //
     //  Parameters:
     //
     //    Input, int NODE_NUM, the number of nodes.
@@ -172,18 +136,6 @@ void area_set(int node_num, double node_xy[], int nnodes, int element_num,
     //    The matrix is known to be banded.  A special matrix storage format
     //    is used to reduce the space required.  Details of this format are
     //    discussed in the routine DGB_FA.
-    //
-    //  Licensing:
-    //
-    //    This code is distributed under the GNU LGPL license.
-    //
-    //  Modified:
-    //
-    //    14 April 2006
-    //
-    //  Author:
-    //
-    //    C++ version by John Burkardt
     //
     //  Parameters:
     //
@@ -233,18 +185,6 @@ void assemble(int node_num, double node_xy[], int nnodes, int element_num,
     //
     //    BANDWIDTH determines the bandwidth of the coefficient matrix.
     //
-    //  Licensing:
-    //
-    //    This code is distributed under the GNU LGPL license.
-    //
-    //  Modified:
-    //
-    //    16 April 2006
-    //
-    //  Author:
-    //
-    //    C++ version by John Burkardt
-    //
     //  Parameters:
     //
     //    Input, int NNODES, the number of local nodes per element.
@@ -271,18 +211,6 @@ int bandwidth(int nnodes, int element_num, int element_node[], int node_num);
     //    comparison is easy, because the value of the finite element
     //    solution is exactly the value of the finite element coefficient
     //    associated with that node.
-    //
-    //  Licensing:
-    //
-    //    This code is distributed under the GNU LGPL license.
-    //
-    //  Modified:
-    //
-    //    15 April 2006
-    //
-    //  Author:
-    //
-    //    C++ version by John Burkardt
     //
     //  Parameters:
     //
@@ -315,18 +243,6 @@ void compare(int node_num, double node_xy[], double time, double u[]);
     //
     //    The two dimensional array can be further reduced to a one dimensional
     //    array, stored by columns.
-    //
-    //  Licensing:
-    //
-    //    This code is distributed under the GNU LGPL license.
-    //
-    //  Modified:
-    //
-    //    20 February 2004
-    //
-    //  Author:
-    //
-    //    C++ version by John Burkardt
     //
     //  Reference:
     //
@@ -372,18 +288,6 @@ int dgb_fa(int n, int ml, int mu, double a[], int pivot[]);
     //    The two dimensional array can be further reduced to a one dimensional
     //    array, stored by columns.
     //
-    //  Licensing:
-    //
-    //    This code is distributed under the GNU LGPL license.
-    //
-    //  Modified:
-    //
-    //    06 April 2006
-    //
-    //  Author:
-    //
-    //    John Burkardt
-    //
     //  Parameters:
     //
     //    Input, int M, the number of rows of the matrix.
@@ -423,18 +327,6 @@ void dgb_print_some(int m, int n, int ml, int mu, double a[],
     //    The two dimensional array can be further reduced to a one dimensional
     //    array, stored by columns.
     //
-    //  Licensing:
-    //
-    //    This code is distributed under the GNU LGPL license.
-    //
-    //  Modified:
-    //
-    //    20 February 2004
-    //
-    //  Author:
-    //
-    //    C++ version by John Burkardt
-    //
     //  Reference:
     //
     //    Jack Dongarra, Jim Bunch, Cleve Moler, Pete Stewart,
@@ -468,18 +360,6 @@ double *dgb_sl(int n, int ml, int mu, double a[], int pivot[], double b[],
     //  Purpose:
     //
     //    ELEMENT_WRITE writes the elements to a file.
-    //
-    //  Licensing:
-    //
-    //    This code is distributed under the GNU LGPL license.
-    //
-    //  Modified:
-    //
-    //    22 March 2005
-    //
-    //  Author:
-    //
-    //    John Burkardt
     //
     //  Parameters:
     //
@@ -516,18 +396,6 @@ void element_write(int nnodes, int element_num, int element_node[],
     //
     //    Uh, Uhx and Uhy are the computed solution and its spatial derivatives,
     //    as specified by the computed finite element solution.
-    //
-    //  Licensing:
-    //
-    //    This code is distributed under the GNU LGPL license.
-    //
-    //  Modified:
-    //
-    //    16 April 2006
-    //
-    //  Author:
-    //
-    //    C++ version by John Burkardt
     //
     //  Parameters:
     //
@@ -609,18 +477,6 @@ void errors(double element_area[], int element_node[], double node_xy[],
     //
     //    DUDX and DUDY are only needed for the ERRORS calculation.
     //
-    //  Licensing:
-    //
-    //    This code is distributed under the GNU LGPL license.
-    //
-    //  Modified:
-    //
-    //    16 April 2004
-    //
-    //  Author:
-    //
-    //    C++ version by John Burkardt
-    //
     //  Parameters:
     //
     //    Input, int NODE_NUM, the number of nodes at which
@@ -664,18 +520,6 @@ void exact_u(int node_num, double node_xy[], double time,
     //      "a9to99.txt"     "a0to00.txt"  (wrap around)
     //      "cat.txt"        " "           (no digits to increment)
     //      " "              STOP!         (error)
-    //
-    //  Licensing:
-    //
-    //    This code is distributed under the GNU LGPL license.
-    //
-    //  Modified:
-    //
-    //    14 September 2005
-    //
-    //  Author:
-    //
-    //    John Burkardt
     //
     //  Parameters:
     //
@@ -727,18 +571,6 @@ void file_name_inc(char *file_name);
     //    |  1 \|  3 \|  5 \|
     //    1--2--3--4--5--6--7
     //
-    //  Licensing:
-    //
-    //    This code is distributed under the GNU LGPL license.
-    //
-    //  Modified:
-    //
-    //    16 April 2006
-    //
-    //  Author:
-    //
-    //    John Burkardt
-    //
     //  Parameters:
     //
     //    Input, int NX, NY, controls the number of elements along the
@@ -759,18 +591,6 @@ void grid_t6(int nx, int ny, int nnodes, int element_num, int element_node[]);
     //
     //    I4_MAX returns the maximum of two I4's.
     //
-    //  Licensing:
-    //
-    //    This code is distributed under the GNU LGPL license.
-    //
-    //  Modified:
-    //
-    //    13 October 1998
-    //
-    //  Author:
-    //
-    //    John Burkardt
-    //
     //  Parameters:
     //
     //    Input, int I1, I2, are two ints to be compared.
@@ -783,18 +603,6 @@ int i4_max(int i1, int i2);
     //  Purpose:
     //
     //    I4_MIN returns the smaller of two I4's.
-    //
-    //  Licensing:
-    //
-    //    This code is distributed under the GNU LGPL license.
-    //
-    //  Modified:
-    //
-    //    13 October 1998
-    //
-    //  Author:
-    //
-    //    John Burkardt
     //
     //  Parameters:
     //
@@ -819,18 +627,6 @@ int i4_min (int i1, int i2);
     //    Otherwise, if possible, the first MAX_PRINT-2 entries are printed,
     //    followed by a line of periods suggesting an omission,
     //    and the last entry.
-    //
-    //  Licensing:
-    //
-    //    This code is distributed under the GNU LGPL license.
-    //
-    //  Modified:
-    //
-    //    14 November 2003
-    //
-    //  Author:
-    //
-    //    John Burkardt
     //
     //  Parameters:
     //
@@ -866,18 +662,6 @@ void i4vec_print_some(int n, int a[], int max_print, char *title);
     //       1  0  0  0  1
     //       1  1  1  1  1
     //
-    //  Licensing:
-    //
-    //    This code is distributed under the GNU LGPL license.
-    //
-    //  Modified:
-    //
-    //    14 April 2006
-    //
-    //  Author:
-    //
-    //    C++ version by John Burkardt
-    //
     //  Parameters:
     //
     //    Input, int NX, NY, the number of elements in the X and Y directions.
@@ -894,18 +678,6 @@ int *node_boundary_set(int nx, int ny, int node_num);
     //  Purpose:
     //
     //    NODES_PLOT plots a pointset.
-    //
-    //  Licensing:
-    //
-    //    This code is distributed under the GNU LGPL license.
-    //
-    //  Modified:
-    //
-    //    27 September 2006
-    //
-    //  Author:
-    //
-    //    John Burkardt
     //
     //  Parameters:
     //
@@ -924,18 +696,6 @@ void nodes_plot(char *file_name, int node_num, double node_xy[],
     //  Purpose:
     //
     //    NODES_WRITE writes the nodes to a file.
-    //
-    //  Licensing:
-    //
-    //    This code is distributed under the GNU LGPL license.
-    //
-    //  Modified:
-    //
-    //    22 March 2005
-    //
-    //  Author:
-    //
-    //    John Burkardt
     //
     //  Parameters:
     //
@@ -1002,18 +762,6 @@ void nodes_write(int node_num, double node_xy[], char *output_filename);
     //    |
     //    +--0--R--1-------->
     //
-    //  Licensing:
-    //
-    //    This code is distributed under the GNU LGPL license.
-    //
-    //  Modified:
-    //
-    //    16 April 2006
-    //
-    //  Author:
-    //
-    //    John Burkardt
-    //
     //  Parameters:
     //
     //    Input, double X, Y, the (global) coordinates of the point
@@ -1047,18 +795,6 @@ void qbf(double x, double y, int element, int inode, double node_xy[],
     //
     //    QUAD_A sets the quadrature rule for assembly.
     //
-    //  Licensing:
-    //
-    //    This code is distributed under the GNU LGPL license.
-    //
-    //  Modified:
-    //
-    //    16 April 2006
-    //
-    //  Author:
-    //
-    //    C++ version by John Burkardt
-    //
     //  Parameters:
     //
     //    Input, double NODE_XY[2*NODE_NUM], the nodes.
@@ -1084,18 +820,6 @@ void quad_a(double node_xy[], int element_node[], int element_num,
     //  Purpose:
     //
     //    QUAD_E sets a quadrature rule for the error calculation.
-    //
-    //  Licensing:
-    //
-    //    This code is distributed under the GNU LGPL license.
-    //
-    //  Modified:
-    //
-    //    16 April 2006
-    //
-    //  Author:
-    //
-    //    C++ version by John Burkardt
     //
     //  Parameters:
     //
@@ -1130,18 +854,6 @@ void quad_e(double node_xy[], int element_node[],
     //
     //    R8_HUGE returns a "huge" R8.
     //
-    //  Licensing:
-    //
-    //    This code is distributed under the GNU LGPL license.
-    //
-    //  Modified:
-    //
-    //    08 May 2003
-    //
-    //  Author:
-    //
-    //    John Burkardt
-    //
     //  Parameters:
     //
     //    Output, double R8_HUGE, a "huge" value.
@@ -1152,18 +864,6 @@ double r8_huge(void);
     //  Purpose:
     //
     //    R8_MAX returns the maximum of two R8's.
-    //
-    //  Licensing:
-    //
-    //    This code is distributed under the GNU LGPL license.
-    //
-    //  Modified:
-    //
-    //    10 January 2002
-    //
-    //  Author:
-    //
-    //    John Burkardt
     //
     //  Parameters:
     //
@@ -1177,18 +877,6 @@ double r8_max(double x, double y);
     //  Purpose:
     //
     //    R8_MIN returns the minimum of two R8's.
-    //
-    //  Licensing:
-    //
-    //    This code is distributed under the GNU LGPL license.
-    //
-    //  Modified:
-    //
-    //    09 May 2003
-    //
-    //  Author:
-    //
-    //    John Burkardt
     //
     //  Parameters:
     //
@@ -1216,18 +904,6 @@ double r8_min(double x, double y);
     //     -1.1        -1
     //     -1.6        -2
     //
-    //  Licensing:
-    //
-    //    This code is distributed under the GNU LGPL license.
-    //
-    //  Modified:
-    //
-    //    26 August 2004
-    //
-    //  Author:
-    //
-    //    John Burkardt
-    //
     //  Parameters:
     //
     //    Input, double X, the value.
@@ -1244,18 +920,6 @@ int r8_nint(double x);
     //  Discussion:
     //
     //    An R8VEC is a vector of R8 values.
-    //
-    //  Licensing:
-    //
-    //    This code is distributed under the GNU LGPL license.
-    //
-    //  Modified:
-    //
-    //    16 October 2006
-    //
-    //  Author:
-    //
-    //    John Burkardt
     //
     //  Parameters:
     //
@@ -1281,18 +945,6 @@ void r8vec_print_some(int n, double a[], int i_lo, int i_hi, char *title);
     //    solved.  This is one of the routines that a user will
     //    normally want to change.
     //
-    //  Licensing:
-    //
-    //    This code is distributed under the GNU LGPL license.
-    //
-    //  Modified:
-    //
-    //    17 April 2006
-    //
-    //  Author:
-    //
-    //    C++ version by John Burkardt
-    //
     //  Parameters:
     //
     //    Input, double X, Y, the coordinates of a point
@@ -1311,18 +963,6 @@ double rhs(double x, double y, double time);
     //
     //    S_LEN_TRIM returns the length of a string to the last nonblank.
     //
-    //  Licensing:
-    //
-    //    This code is distributed under the GNU LGPL license.
-    //
-    //  Modified:
-    //
-    //    26 April 2003
-    //
-    //  Author:
-    //
-    //    John Burkardt
-    //
     //  Parameters:
     //
     //    Input, char *S, a pointer to a string.
@@ -1336,18 +976,6 @@ int s_len_trim(char *s);
     //  Purpose:
     //
     //    SOLUTION_WRITE writes the solution to a file.
-    //
-    //  Licensing:
-    //
-    //    This code is distributed under the GNU LGPL license.
-    //
-    //  Modified:
-    //
-    //    15 April 2006
-    //
-    //  Author:
-    //
-    //    John Burkardt
     //
     //  Parameters:
     //
@@ -1369,18 +997,6 @@ void solution_write(int node_num, double u[], char *u_file_name);
     //
     //    May 31 2001 09:45:54 AM
     //
-    //  Licensing:
-    //
-    //    This code is distributed under the GNU LGPL license.
-    //
-    //  Modified:
-    //
-    //    24 September 2003
-    //
-    //  Author:
-    //
-    //    John Burkardt
-    //
     //  Parameters:
     //
     //    None
@@ -1401,18 +1017,6 @@ void timestamp(void);
     //    a mesh of 6 node elements, with the property that starting
     //    from local node 1 and traversing the edges of the element will
     //    result in encountering local nodes 1, 4, 2, 5, 3, 6 in that order.
-    //
-    //  Licensing:
-    //
-    //    This code is distributed under the GNU LGPL license.
-    //
-    //  Modified:
-    //
-    //    27 September 2006
-    //
-    //  Author:
-    //
-    //    John Burkardt
     //
     //  Parameters:
     //
@@ -1455,18 +1059,6 @@ void triangulation_order6_plot(char *file_name, int node_num,
     //    right until the value of X = 1 is reached, at which point
     //    the next layer is generated starting back at X = 0, and an
     //    increased value of Y.
-    //
-    //  Licensing:
-    //
-    //    This code is distributed under the GNU LGPL license.
-    //
-    //  Modified:
-    //
-    //    07 April 2004
-    //
-    //  Author:
-    //
-    //    C++ version by John Burkardt
     //
     //  Parameters:
     //

@@ -10,7 +10,6 @@
 
 using namespace std;
 
-    //****************************************************************************80
     //
     //  Purpose:
     //
@@ -38,10 +37,6 @@ using namespace std;
     //    triangles determined by a uniform grid of NX by NY points.
     //
     //    The backward Euler approximation is used for the time derivatives.
-    //
-    //  Author:
-    //
-    //    C++ version by John Burkardt
     //
     //  Local parameters:
     //
