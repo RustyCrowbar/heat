@@ -1,0 +1,27 @@
+* La fonction bandwidth pourrait être considérablement simplifiée,
+  en faisant la différence entre l'index du noeud supérieur d'un élément
+  avec l'index du noeud au coin inférieur gauche.
+
+  *
+  |\
+  | \
+  *  *
+  |   \
+  |    \
+  *--*--*
+
+  En effet, la map est construite toujours de la même manière: les index
+  sont affectés de gauche à droite, à partir du coin inférieur gauche.
+  La plus grande différence d'index entre deux noeuds d'un même élément
+  est donc constante: celui du coin inférieur gauche est construit le plus
+  tôt, celui du haut le plus tard.
+
+* Remplacer i4_max et autres fonctions toutes simples par des fonctions
+  de la STL, bien plus concises.
+
+* Faire une struct pour les noeuds:
+  struct node
+  {
+    struct point pos; // X, Y
+    bool is_on_border;
+  };
