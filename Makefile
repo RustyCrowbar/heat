@@ -8,9 +8,14 @@ OBJS		= $(patsubst ${SRCDIR}%,${OBJDIR}%,${SRCS:.cc=.o})
 OPTFLAGS	= -O3 -DNDEBUG
 SRCDIR		= src
 SRCS		= $(wildcard ${SRCDIR}/*.cc)
+TOOLDIR		= tools
 TARGET		= heat
 
 all: ${TARGET}
+
+gif: ${TARGET}
+	./${TARGET}
+	./${TOOLDIR}/make_gif.bash
 
 ${OBJDIR}/:
 	mkdir -p ${OBJDIR}

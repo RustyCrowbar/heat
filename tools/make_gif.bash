@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
 
 # make_gif - Plot matrices graphs and make an animate gif out
-# of it.
+# of it. The script expects text files of the following format
+# to be present at the current directory:
+#   rectangle_u[0-9][0-9][0-9][0-9].txt
 #
 # Please run this script from the project's root directory!
 
@@ -22,5 +24,6 @@ do
 	(( i = i - 1 ))
 done
 
+echo "Building animated GIF..."
 output_files=$img_dir/*
-convert -delay 30 -loop 0 $output_files $img_dir/heatmap.gif
+convert -delay 30 -loop 0 $output_files heatmap.gif
