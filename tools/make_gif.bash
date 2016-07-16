@@ -26,4 +26,6 @@ done
 
 echo "Building animated GIF..."
 output_files=$img_dir/*
-convert -delay 30 -loop 0 $output_files heatmap.gif
+convert -delay 15 -loop 0 $output_files heatmap.gif
+
+rm -rf $img_dir
