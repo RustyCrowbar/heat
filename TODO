@@ -1,0 +1,21 @@
+Fonctions parallélisables  |  Intérêt de la parallélisation
+---------------------------------------------------------
+  area_set		   |		1
+  assemble		   |		2
+  adjust_backward_euler    |		2
+  adjust_boundary	   |		2
+  compare		   |		0
+  dgb_fa ?		   |		2
+  dgb_sl ?		   |		2
+  element_write		   |		0
+  errors		   |		2
+  exact_u		   |		3
+  grid_t6		   |		1
+  node_boundary_set	   |		1
+  nodes_plot		   |		0
+  quad_a		   |		1
+  triangulation_order6_plot|		0
+  xy_set		   |		1
+
+QBF n'est pas parallélisable mais devrait être améliorée,
+car elle est appelée partout.
