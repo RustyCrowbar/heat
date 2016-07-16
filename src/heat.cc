@@ -1394,7 +1394,7 @@ void nodes_plot ( char *file_name, int node_num, double node_xy[],
 
     if ( x_scale < y_scale )
     {
-        delta = r8_nint ( ( double ) ( x_ps_max - x_ps_min )
+        delta = (int)std::round ( ( double ) ( x_ps_max - x_ps_min )
                 * ( y_scale - x_scale ) / ( 2.0 * y_scale ) );
 
         x_ps_max = x_ps_max - delta;
@@ -1407,7 +1407,7 @@ void nodes_plot ( char *file_name, int node_num, double node_xy[],
     }
     else if ( y_scale < x_scale )
     {
-        delta = r8_nint ( ( double ) ( y_ps_max - y_ps_min )
+        delta = (int)std::round ( ( double ) ( y_ps_max - y_ps_min )
                 * ( x_scale - y_scale ) / ( 2.0 * x_scale ) );
 
         y_ps_max = y_ps_max - delta;
@@ -1864,46 +1864,6 @@ double r8_huge ( void )
     return ( double ) HUGE_VAL;
 }
 
-double r8_max ( double x, double y )
-{
-    if ( y < x )
-    {
-        return x;
-    }
-    else
-    {
-        return y;
-    }
-}
-
-double r8_min ( double x, double y )
-{
-    if ( y < x )
-    {
-        return y;
-    }
-    else
-    {
-        return x;
-    }
-}
-
-int r8_nint ( double x )
-{
-    int s;
-
-    if ( x < 0.0 )
-    {
-        s = -1;
-    }
-    else
-    {
-        s = 1;
-    }
-
-    return ( s * ( int ) ( fabs ( x ) + 0.5 ) );
-}
-
 void r8vec_print_some ( int n, double a[], int i_lo, int i_hi, char *title )
 {
     int i;
@@ -2095,7 +2055,7 @@ void triangulation_order6_plot ( char *file_name, int node_num,
 
     if ( x_scale < y_scale )
     {
-        delta = r8_nint ( ( double ) ( x_ps_max - x_ps_min )
+        delta = (int)std::round ( ( double ) ( x_ps_max - x_ps_min )
                 * ( y_scale - x_scale ) / ( 2.0 * y_scale ) );
 
         x_ps_max = x_ps_max - delta;
@@ -2108,7 +2068,7 @@ void triangulation_order6_plot ( char *file_name, int node_num,
     }
     else if ( y_scale < x_scale )
     {
-        delta = r8_nint ( ( double ) ( y_ps_max - y_ps_min )
+        delta = (int)std::round ( ( double ) ( y_ps_max - y_ps_min )
                 * ( x_scale - y_scale ) / ( 2.0 * x_scale ) );
 
         y_ps_max = y_ps_max - delta;

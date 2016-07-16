@@ -837,58 +837,6 @@ double r8_huge(void);
     //
     //  Purpose:
     //
-    //    R8_MAX returns the maximum of two R8's.
-    //
-    //  Parameters:
-    //
-    //    Input, double X, Y, the quantities to compare.
-    //
-    //    Output, double R8_MAX, the maximum of X and Y.
-    //
-double r8_max(double x, double y);
-
-    //
-    //  Purpose:
-    //
-    //    R8_MIN returns the minimum of two R8's.
-    //
-    //  Parameters:
-    //
-    //    Input double X, Y, the quantities to compare.
-    //
-    //    Output, double R8_MIN, the minimum of X and Y.
-    //
-double r8_min(double x, double y);
-
-    //
-    //  Purpose:
-    //
-    //    R8_NINT returns the nearest integer to an R8.
-    //
-    //  Example:
-    //
-    //        X        R8_NINT
-    //
-    //      1.3         1
-    //      1.4         1
-    //      1.5         1 or 2
-    //      1.6         2
-    //      0.0         0
-    //     -0.7        -1
-    //     -1.1        -1
-    //     -1.6        -2
-    //
-    //  Parameters:
-    //
-    //    Input, double X, the value.
-    //
-    //    Output, int R8_NINT, the nearest integer to X.
-    //
-int r8_nint(double x);
-
-    //
-    //  Purpose:
-    //
     //    R8VEC_PRINT_SOME prints "some" of an R8VEC.
     //
     //  Discussion:
