@@ -16,9 +16,6 @@
   est donc constante: celui du coin inférieur gauche est construit le plus
   tôt, celui du haut le plus tard.
 
-* Remplacer i4_max et autres fonctions toutes simples par des fonctions
-  de la STL, bien plus concises.
-
 * Faire une struct pour les noeuds:
   struct node
   {
