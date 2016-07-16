@@ -11,11 +11,14 @@
 
 # define NNODES 6
 # define QUAD_NUM 3
-# define NX 14
-# define NY 14
+# define NX 25
+# define NY 25
 
 # define ELEMENT_NUM ( NX - 1 ) * ( NY - 1 ) * 2
 # define NODE_NUM ( 2 * NX - 1 ) * ( 2 * NY - 1 )
+
+#define TIME_END	2.0
+#define NB_ITERATIONS	80
 
 using namespace std;
 
@@ -275,8 +278,8 @@ int main(void)
     //  Set time stepping quantities.
     //
     time_init = 0.0;
-    time_final = 0.5;
-    time_step_num = 10;
+    time_final = TIME_END;
+    time_step_num = NB_ITERATIONS;
     time_step_size = (time_final - time_init) / (double)(time_step_num);
     //
     //  Allocate space.
