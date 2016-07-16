@@ -589,32 +589,6 @@ void grid_t6(int nx, int ny, int nnodes, int element_num, int element_node[]);
     //
     //  Purpose:
     //
-    //    I4_MAX returns the maximum of two I4's.
-    //
-    //  Parameters:
-    //
-    //    Input, int I1, I2, are two ints to be compared.
-    //
-    //    Output, int I4_MAX, the larger of I1 and I2.
-    //
-int i4_max(int i1, int i2);
-
-    //
-    //  Purpose:
-    //
-    //    I4_MIN returns the smaller of two I4's.
-    //
-    //  Parameters:
-    //
-    //    Input, int I1, I2, two ints to be compared.
-    //
-    //    Output, int I4_MIN, the smaller of I1 and I2.
-    //
-int i4_min (int i1, int i2);
-
-    //
-    //  Purpose:
-    //
     //    I4VEC_PRINT_SOME prints "some" of an I4VEC.
     //
     //  Discussion:

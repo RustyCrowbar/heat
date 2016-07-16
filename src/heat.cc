@@ -1,10 +1,11 @@
-#include <cstdlib>
-#include <iostream>
-#include <iomanip>
-#include <fstream>
+#include <algorithm>
 #include <cmath>
-#include <ctime>
+#include <cstdlib>
 #include <cstring>
+#include <ctime>
+#include <fstream>
+#include <iomanip>
+#include <iostream>
 
 #include "incl.h"
 
@@ -196,7 +197,8 @@ int main(void)
     //
     //  Determine the areas of the elements.
     //
-    area_set(NODE_NUM, node_xy, NNODES, ELEMENT_NUM, element_node, element_area);
+    area_set(NODE_NUM, node_xy, NNODES, ELEMENT_NUM, element_node,
+	element_area);
     //
     //  Determine which nodes are boundary nodes and which have a
     //  finite element unknown.  Then set the boundary values.
@@ -247,7 +249,8 @@ int main(void)
         node_show = 2;
         triangle_show = 2;
 
-        triangulation_order6_plot(triangulation_eps_file_name, NODE_NUM, node_xy, ELEMENT_NUM, element_node, node_show, triangle_show);
+        triangulation_order6_plot(triangulation_eps_file_name, NODE_NUM,
+		node_xy, ELEMENT_NUM, element_node, node_show, triangle_show);
         cout << "\n";
         cout << "FEM2D_HEAT_RECTANGLE:\n";
         cout << "  Wrote an EPS file\n";
@@ -257,7 +260,8 @@ int main(void)
     //
     //  Write the elements to a file that can be read into MATLAB.
     //
-    element_write(NNODES, ELEMENT_NUM, element_node, triangulation_txt_file_name);
+    element_write(NNODES, ELEMENT_NUM, element_node,
+	triangulation_txt_file_name);
 
     cout << "\n";
     cout << "FEM2D_HEAT_RECTANGLE:\n";
@@ -320,27 +324,35 @@ int main(void)
             u_old[node] = u[node];
         delete [] u;
 
-        time = ((double)(time_step_num - time_step) * time_init	+ (double)(time_step) * time_final) / (double)(time_step_num);
+        time = ((double)(time_step_num - time_step) * time_init	+
+		(double)(time_step) * time_final) /
+		(double)(time_step_num);
         //
         //  Assemble the coefficient matrix A and the right-hand side F of the
         //  finite element equations.
         //
-        assemble(NODE_NUM, node_xy, NNODES, ELEMENT_NUM, element_node, QUAD_NUM, wq, xq, yq, element_area, ib, time, a, f);
+        assemble(NODE_NUM, node_xy, NNODES, ELEMENT_NUM, element_node,
+		QUAD_NUM, wq, xq, yq, element_area, ib, time, a, f);
 
         if (false)
         {
-            dgb_print_some(NODE_NUM, NODE_NUM, ib, ib, a, 10, 1, 12, 25, "  Initial block of coefficient matrix A:");
-            r8vec_print_some(NODE_NUM, f, 1, 10, "  Part of the right hand side F:");
+            dgb_print_some(NODE_NUM, NODE_NUM, ib, ib, a, 10, 1, 12, 25,
+			    "  Initial block of coefficient matrix A:");
+            r8vec_print_some(NODE_NUM, f, 1, 10,
+			    "  Part of the right hand side F:");
         }
         //
         //  Modify the coefficient matrix and right hand side to account for the dU/dt
         //  term, which we are treating using the backward Euler formula.
         //
-        adjust_backward_euler(NODE_NUM, node_xy, NNODES, ELEMENT_NUM, element_node, QUAD_NUM, wq, xq, yq, element_area, ib, time, time_step_size, u_old, a, f);
+        adjust_backward_euler(NODE_NUM, node_xy, NNODES, ELEMENT_NUM,
+			      element_node, QUAD_NUM, wq, xq, yq, element_area,
+			      ib, time, time_step_size, u_old, a, f);
 
         if (false)
         {
-            dgb_print_some(NODE_NUM, NODE_NUM, ib, ib, a, 10, 1, 12, 25, "  A after DT adjustment:");
+            dgb_print_some(NODE_NUM, NODE_NUM, ib, ib, a, 10, 1, 12, 25,
+			    "  A after DT adjustment:");
             r8vec_print_some ( NODE_NUM, f, 1, 10, "  F after DT adjustment:");
         }
         //
@@ -351,15 +363,14 @@ int main(void)
 
         if (false)
         {
-            dgb_print_some(NODE_NUM, NODE_NUM, ib, ib, a, 10, 1, 12, 25, "  A after BC adjustment:");
+            dgb_print_some(NODE_NUM, NODE_NUM, ib, ib, a, 10, 1, 12, 25,
+		"  A after BC adjustment:");
             r8vec_print_some(NODE_NUM, f, 1, 10, "  F after BC adjustment:");
         }
         //
         //  Solve the linear system using a banded solver.
         //
-        ierr = dgb_fa(NODE_NUM, ib, ib, a, pivot);
-
-        if (ierr != 0)
+        if (dgb_fa(NODE_NUM, ib, ib, a, pivot) != 0)
         {
             cout << "\n";
             cout << "FEM2D_HEAT_RECTANGLE - Error!\n";
@@ -374,11 +385,13 @@ int main(void)
         u = dgb_sl (NODE_NUM, ib, ib, a, pivot, f, job);
 
         if (false)
-            r8vec_print_some(NODE_NUM, u, 1, 10, "  Part of the solution vector:");
+            r8vec_print_some(NODE_NUM, u, 1, 10,
+		"  Part of the solution vector:");
         //
         //  Calculate error using 13 point quadrature rule.
         //
-        errors(element_area, element_node, node_xy, u, ELEMENT_NUM, NNODES, NODE_NUM, time, &el2, &eh1);
+        errors(element_area, element_node, node_xy, u, ELEMENT_NUM, NNODES,
+		NODE_NUM, time, &el2, &eh1);
         //
         //  Compare the exact and computed solutions just at the nodes.
         //
@@ -460,19 +473,21 @@ void adjust_backward_euler(int node_num, double node_xy[], int nnodes,
             {
                 node = element_node[test+element*nnodes];
 
-                qbf(x, y, element, test, node_xy, element_node,	element_num, nnodes, node_num, &bi, &dbidx, &dbidy);
+                qbf(x, y, element, test, node_xy, element_node,	element_num,
+			nnodes, node_num, &bi, &dbidx, &dbidy);
                 //
                 //  Carry the U_OLD term to the right hand side.
                 //
-                f[node] = f[node] + w * bi * u_old[node] / time_step_size;
+                f[node] += w * bi * u_old[node] / time_step_size;
                 //
                 //  Modify the diagonal entries of A.
                 //
                 for (basis = 0; basis < nnodes; basis++)
                 {
                     j = element_node[basis+element*nnodes];
-                    qbf(x, y, element, basis, node_xy, element_node, element_num, nnodes, node_num, &bj, &dbjdx, &dbjdy);
-                    a[node-j+2*ib+j*(3*ib+1)] = a[node-j+2*ib+j*(3*ib+1)] + w * bi * bj / time_step_size;
+                    qbf(x, y, element, basis, node_xy, element_node,
+			element_num, nnodes, node_num, &bj, &dbjdx, &dbjdy);
+                    a[node-j+2*ib+j*(3*ib+1)] += w * bi * bj / time_step_size;
                 }
             }
         }
@@ -505,8 +520,8 @@ void adjust_boundary(int node_num, double node_xy[], int node_boundary[],
     {
         if (node_boundary[node] != 0)
         {
-            jlo = i4_max(node - ib, 0);
-            jhi = i4_min(node + ib, node_num - 1);
+            jlo = std::max(node - ib, 0);
+            jhi = std::min(node + ib, node_num - 1);
 
             for (j = jlo; j <= jhi; j++)
                 a[node-j+2*ib+j*(3*ib+1)] = 0.0;
@@ -601,8 +616,9 @@ void assemble(int node_num, double node_xy[], int nnodes, int element_num,
             for (test = 0; test < nnodes; test++)
             {
                 node = element_node[test+element*nnodes];
-                qbf(x, y, element, test, node_xy, element_node,	element_num, nnodes, node_num, &bi, &dbidx, &dbidy);
-                f[node] = f[node] + w * rhs(x, y, time) * bi;
+                qbf(x, y, element, test, node_xy, element_node,	element_num,
+		    nnodes, node_num, &bi, &dbidx, &dbidy);
+                f[node] += w * rhs(x, y, time) * bi;
                 //
                 //  We are about to compute a contribution associated with the
                 //  I-th test function and the J-th basis function, and add this
@@ -618,9 +634,10 @@ void assemble(int node_num, double node_xy[], int nnodes, int element_num,
                 for(basis = 0; basis < nnodes; basis++)
                 {
                     j = element_node[basis + element * nnodes];
-                    qbf(x, y, element, basis, node_xy, element_node, element_num, nnodes, node_num, &bj, &dbjdx, &dbjdy);
+                    qbf(x, y, element, basis, node_xy, element_node,
+		        element_num, nnodes, node_num, &bj, &dbjdx, &dbjdy);
                     aij = dbidx * dbjdx + dbidy * dbjdy;
-                    a[node-j+2*ib+j*(3*ib+1)] = a[node-j+2*ib+j*(3*ib+1)] + w * aij;
+                    a[node-j+2*ib+j*(3*ib+1)] += w * aij;
                 }
             }
         }
@@ -649,7 +666,7 @@ int bandwidth(int nnodes, int element_num, int element_node[], int node_num)
             for (jln = 0; jln < nnodes; jln++)
             {
                 j = element_node[jln+element*nnodes];
-                nhba = i4_max(nhba, j - i);
+                nhba = std::max(nhba, j - i);
             }
         }
     }
@@ -708,7 +725,7 @@ int dgb_fa(int n, int ml, int mu, double a[], int pivot[])
     //  Zero out the initial fill-in columns.
     //
     j0 = mu + 2;
-    j1 = i4_min(n, m) - 1;
+    j1 = std::min(n, m) - 1;
 
     for (jz = j0; jz <= j1; jz++)
     {
@@ -732,7 +749,7 @@ int dgb_fa(int n, int ml, int mu, double a[], int pivot[])
         //
         //  Find L = pivot index.
         //
-        lm = i4_min(ml, n-k);
+        lm = std::min(ml, n-k);
         l = m;
 
         for (j = m+1; j <= m + lm; j++)
@@ -762,8 +779,8 @@ int dgb_fa(int n, int ml, int mu, double a[], int pivot[])
         //
         //  Row elimination with column indexing.
         //
-        ju = i4_max(ju, mu + pivot[k-1]);
-        ju = i4_min(ju, n);
+        ju = std::max(ju, mu + pivot[k-1]);
+        ju = std::min(ju, n);
         mm = m;
 
         for (j = k+1; j <= ju; j++)
@@ -811,8 +828,8 @@ void dgb_print_some(int m, int n, int ml, int mu, double a[],
     for (j2lo = jlo; j2lo <= jhi; j2lo = j2lo + INCX)
     {
         j2hi = j2lo + INCX - 1;
-        j2hi = i4_min(j2hi, n);
-        j2hi = i4_min(j2hi, jhi);
+        j2hi = std::min(j2hi, n);
+        j2hi = std::min(j2hi, jhi);
         cout << "\n";
         cout << "  Col: ";
         for (j = j2lo; j <= j2hi; j++)
@@ -823,11 +840,11 @@ void dgb_print_some(int m, int n, int ml, int mu, double a[],
         //
         //  Determine the range of the rows in this strip.
         //
-        i2lo = i4_max ( ilo, 1 );
-        i2lo = i4_max ( i2lo, j2lo - mu );
+        i2lo = std::max ( ilo, 1 );
+        i2lo = std::max ( i2lo, j2lo - mu );
 
-        i2hi = i4_min ( ihi, m );
-        i2hi = i4_min ( i2hi, j2hi + ml );
+        i2hi = std::min ( ihi, m );
+        i2hi = std::min ( i2hi, j2hi + ml );
 
         for ( i = i2lo; i <= i2hi; i++ )
         {
@@ -890,7 +907,7 @@ double *dgb_sl ( int n, int ml, int mu, double a[], int pivot[], double b[],
         {
             for ( k = 1; k <= n-1; k++ )
             {
-                lm = i4_min ( ml, n-k );
+                lm = std::min ( ml, n-k );
                 l = pivot[k-1];
 
                 if ( l != k )
@@ -911,7 +928,7 @@ double *dgb_sl ( int n, int ml, int mu, double a[], int pivot[], double b[],
         for ( k = n; 1 <= k; k-- )
         {
             x[k-1] = x[k-1] / a[m-1+(k-1)*col];
-            lm = i4_min ( k, m ) - 1;
+            lm = std::min ( k, m ) - 1;
             la = m - lm;
             lb = k - lm;
             for ( i = 0; i <= lm-1; i++ )
@@ -930,7 +947,7 @@ double *dgb_sl ( int n, int ml, int mu, double a[], int pivot[], double b[],
         //
         for ( k = 1; k <= n; k++ )
         {
-            lm = i4_min ( k, m ) - 1;
+            lm = std::min ( k, m ) - 1;
             la = m - lm;
             lb = k - lm;
             for ( i = 0; i <= lm-1; i++ )
@@ -946,7 +963,7 @@ double *dgb_sl ( int n, int ml, int mu, double a[], int pivot[], double b[],
         {
             for ( k = n-1; 1 <= k; k-- )
             {
-                lm = i4_min ( ml, n-k );
+                lm = std::min ( ml, n-k );
                 for ( i = 1; i <= lm; i++ )
                 {
                     x[k-1] = x[k-1] + x[k+i-1] * a[m+i-1+(k-1)*col];
@@ -1215,32 +1232,6 @@ void grid_t6 ( int nx, int ny, int nnodes, int element_num, int element_node[] )
     return;
 }
 
-int i4_max ( int i1, int i2 )
-{
-    if ( i2 < i1 )
-    {
-        return i1;
-    }
-    else
-    {
-        return i2;
-    }
-
-}
-
-int i4_min ( int i1, int i2 )
-{
-    if ( i1 < i2 )
-    {
-        return i1;
-    }
-    else
-    {
-        return i2;
-    }
-
-}
-
 void i4vec_print_some ( int n, int a[], int max_print, char *title )
 {
     int i;
@@ -1312,10 +1303,10 @@ int *node_boundary_set ( int nx, int ny, int node_num )
     {
         for ( i = 1; i <= 2 * nx - 1; i++ )
         {
-            if ( j == 1 ||
-                    j == 2 * ny - 1 ||
-                    i == 1 ||
-                    i == 2 * nx - 1 )
+            if (j == 1 ||
+                j == 2 * ny - 1 ||
+                i == 1 ||
+                i == 2 * nx - 1 )
             {
                 node_boundary[node] = 1;
             }
@@ -1324,7 +1315,7 @@ int *node_boundary_set ( int nx, int ny, int node_num )
                 node_boundary[node] = 0;
             }
 
-            node = node + 1;
+            ++node;
         }
     }
     return node_boundary;
@@ -1926,7 +1917,7 @@ void r8vec_print_some ( int n, double a[], int i_lo, int i_hi, char *title )
     }
 
     cout << "\n";
-    for ( i = i4_max ( 1, i_lo ); i <= i4_min ( n, i_hi ); i++ )
+    for ( i = std::max ( 1, i_lo ); i <= std::min ( n, i_hi ); i++ )
     {
         cout << "  " << setw(8)  << i       << "  "
             << "  " << setw(14) << a[i-1]  << "\n";

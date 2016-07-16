@@ -25,3 +25,6 @@
     struct point pos; // X, Y
     bool is_on_border;
   };
+
+* L'incrément de time dans la boucle de calcul de la fonction main:
+  pourquoi ne pas faire: "time += time_step_size;" ???
