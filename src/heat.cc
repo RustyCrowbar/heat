@@ -9,6 +9,14 @@
 
 #include "incl.h"
 
+# define NNODES 6
+# define QUAD_NUM 3
+# define NX 14
+# define NY 14
+
+# define ELEMENT_NUM ( NX - 1 ) * ( NY - 1 ) * 2
+# define NODE_NUM ( 2 * NX - 1 ) * ( 2 * NY - 1 )
+
 using namespace std;
 
     //
@@ -99,13 +107,6 @@ using namespace std;
 
 int main(void)
 {
-# define NNODES 6
-# define QUAD_NUM 3
-# define NX 5
-# define NY 5
-
-# define ELEMENT_NUM ( NX - 1 ) * ( NY - 1 ) * 2
-# define NODE_NUM ( 2 * NX - 1 ) * ( 2 * NY - 1 )
 
     double *a;
     double dt;
@@ -429,12 +430,6 @@ int main(void)
     timestamp();
 
     return 0;
-# undef ELEMENT_NUM
-# undef NNODES
-# undef NODE_NUM
-# undef NX
-# undef NY
-# undef QUAD_NUM
 }
 
 void adjust_backward_euler(int node_num, double node_xy[], int nnodes,
@@ -1323,7 +1318,7 @@ int *node_boundary_set ( int nx, int ny, int node_num )
 
 void nodes_plot ( char *file_name, int node_num, double node_xy[],
 	bool node_label )
-    {
+{
     int circle_size;
     int delta;
     ofstream file_unit;
@@ -1982,9 +1977,10 @@ void solution_write ( int node_num, double u[], char *u_file_name )
         return;
     }
 
+    const int nb_nodes_x = NX * 2 - 1;
     for ( node = 0; node < node_num; node++ )
     {
-	if ((node % 9) == 0 && (node > 0))
+	if ((node % nb_nodes_x) == 0 && (node > 0))
 		u_file << std::endl << u[node] << " ";
 	else
 		u_file << u[node] << " ";
