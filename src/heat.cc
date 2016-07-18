@@ -3,11 +3,12 @@
 #include <cstdlib>
 #include <cstring>
 #include <ctime>
+#include <cstdint>
 #include <fstream>
 #include <iomanip>
 #include <iostream>
 
-#include "incl.h"
+#include "incl.hh"
 
 # define NNODES 6
 # define QUAD_NUM 3
@@ -20,425 +21,7 @@
 #define TIME_END	2.0
 #define NB_ITERATIONS	80
 
-//using namespace std;
-
-    //
-    //  Purpose:
-    //
-    //    MAIN is the main program for FEM2D_HEAT_RECTANGLE.
-    //
-    //  Discussion:
-    //
-    //    FEM2D_HEAT_RECTANGLE solves
-    //
-    //      dUdT - Laplacian U(X,Y,T) = F(X,Y,T)
-    //
-    //    in a rectangular region in the plane.
-    //
-    //    Along the boundary of the region, Dirichlet conditions
-    //    are imposed:
-    //
-    //      U(X,Y,T) = G(X,Y,T)
-    //
-    //    At the initial time T_INIT, the value of U is given at all points
-    //    in the region:
-    //
-    //      U(X,Y,T) = H(X,Y,T)
-    //
-    //    The code uses continuous piecewise quadratic basis functions on
-    //    triangles determined by a uniform grid of NX by NY points.
-    //
-    //    The backward Euler approximation is used for the time derivatives.
-    //
-    //  Local parameters:
-    //
-    //    Local, double A[(3*IB+1)*NODE_NUM], the coefficient matrix.
-    //
-    //    Local, double EH1, the H1 seminorm error.
-    //
-    //    Local, double EL2, the L2 error.
-    //
-    //    Local, double ELEMENT_AREA[ELEMENT_NUM], the area of each element.
-    //
-    //    Local, int ELEMENT_NODE[ELEMENT_NUM*NNODES]; ELEMENT_NODE(I,J) is the
-    //    global node index of the local node J in element I.
-    //
-    //    Local, int ELEMENT_NUM, the number of elements.
-    //
-    //    Local, double F[NODE_NUM], the right hand side.
-    //
-    //    Local, int IB, the half-bandwidth of the matrix.
-    //
-    //    Local, integer NODE_BOUNDARY[NODE_NUM], is
-    //    0, if a node is an interior node;
-    //    1, if a node is a Dirichlet boundary node.
-    //
-    //    Local, int NNODES, the number of nodes used to form one element.
-    //
-    //    Local, double NODE_XY[2*NODE_NUM], the X and Y coordinates of nodes.
-    //
-    //    Local, int NX, the number of points in the X direction.
-    //
-    //    Local, int NY, the number of points in the Y direction.
-    //
-    //    Local, int QUAD_NUM, the number of quadrature points used for assembly.
-    //
-    //    Local, double TIME, the current time.
-    //
-    //    Local, double TIME_FINAL, the final time.
-    //
-    //    Local, double TIME_INIT, the initial time.
-    //
-    //    Local, double TIME_OLD, the time at the previous time step.
-    //
-    //    Local, int TIME_STEP_NUM, the number of time steps to take.
-    //
-    //    Local, double TIME_STEP_SIZE, the size of the time steps.
-    //
-    //    Local, double U[NODE_NUM], the finite element coefficients
-    //    defining the solution at the current time.
-    //
-    //    Local, double WQ[QUAD_NUM], quadrature weights.
-    //
-    //    Local, double XL, XR, YB, YT, the X coordinates of
-    //    the left and right sides of the rectangle, and the Y coordinates
-    //    of the bottom and top of the rectangle.
-    //
-    //    Local, double XQ[QUAD_NUM*ELEMENT_NUM], YQ[QUAD_NUM*ELEMENT_NUM], the X and Y
-    //    coordinates of the quadrature points in each element.
-    //
-
-int main(void)
-{
-
-    double *a;
-    double dt;
-    double *dudx_exact;
-    double *dudy_exact;
-    double eh1;
-    double el2;
-    int element;
-    double element_area[ELEMENT_NUM];
-    bool *element_mask;
-    int element_node[NNODES*ELEMENT_NUM];
-    double *f;
-    int i;
-    int ib;
-    int ierr;
-    int job;
-    int local;
-    int node;
-    int *node_boundary;
-    char *node_eps_file_name = "rectangle_nodes.eps";
-    char *node_txt_file_name = "rectangle_nodes.txt";
-    bool node_label;
-    int node_show;
-    double node_xy[2*NODE_NUM];
-    int *pivot;
-    double time;
-    char *time_file_name = "rectangle_time.txt";
-    double time_final;
-    double time_init;
-    double time_old;
-    int time_step;
-    int time_step_num;
-    double time_step_size;
-    std::ofstream time_unit;
-    int triangle_show;
-    char *triangulation_eps_file_name = "rectangle_elements.eps";
-    char *triangulation_txt_file_name = "rectangle_elements.txt";
-    double *u;
-    double *u_exact;
-    char u_file_name[] = "rectangle_u0001.txt";
-    double *u_old;
-    double wq[QUAD_NUM];
-    double xl = 0.0;
-    double xq[QUAD_NUM*ELEMENT_NUM];
-    double xr = 1.0;
-    double yb = 0.0;
-    double yq[QUAD_NUM*ELEMENT_NUM];
-    double yt = 1.0;
-
-    timestamp();
-
-    std::cout << "\n";
-    std::cout << "FEM2D_HEAT_RECTANGLE\n";
-    std::cout << "  C++ version\n";
-    std::cout << "\n";
-    std::cout << "  Compiled on " << __DATE__ << " at " << __TIME__ << ".\n";
-    std::cout << "\n";
-    std::cout << "  Solution of the time-dependent heat equation\n";
-    std::cout << "  on a unit box in 2 dimensions.\n";
-    std::cout << "\n";
-    std::cout << "  Ut - Uxx - Uyy = F(x,y,t) in the box\n";
-    std::cout << "        U(x,y,t) = G(x,y,t) for (x,y) on the boundary.\n";
-    std::cout << "        U(x,y,t) = H(x,y,t) for t = T_INIT.\n";
-    std::cout << "\n";
-    std::cout << "  The finite element method is used, with piecewise\n";
-    std::cout << "  quadratic basis functions on 6 node triangular\n";
-    std::cout << "  elements.\n";
-    std::cout << "\n";
-    std::cout << "  The corner nodes of the triangles are generated by an\n";
-    std::cout << "  underlying grid whose dimensions are\n";
-    std::cout << "\n";
-    std::cout << "  NX =                 " << NX << "\n";
-    std::cout << "  NY =                 " << NY << "\n";
-    std::cout << "\n";
-    std::cout << "  Number of nodes    = " << NODE_NUM << "\n";
-    std::cout << "  Number of elements = " << ELEMENT_NUM << "\n";
-    //
-    //  Set the coordinates of the nodes.
-    //
-    xy_set(NX, NY, NODE_NUM, xl, xr, yb, yt, node_xy);
-    //
-    //  Organize the nodes into a grid of 6-node triangles.
-    //
-    grid_t6(NX, NY, NNODES, ELEMENT_NUM, element_node);
-    //
-    //  Set the quadrature rule for assembly.
-    //
-    quad_a(node_xy, element_node, ELEMENT_NUM, NODE_NUM, NNODES, wq, xq, yq);
-    //
-    //  Determine the areas of the elements.
-    //
-    area_set(NODE_NUM, node_xy, NNODES, ELEMENT_NUM, element_node,
-	element_area);
-    //
-    //  Determine which nodes are boundary nodes and which have a
-    //  finite element unknown.  Then set the boundary values.
-    //
-    node_boundary = node_boundary_set(NX, NY, NODE_NUM);
-
-    if (false)
-        i4vec_print_some(NODE_NUM, node_boundary, 10, "  NODE_BOUNDARY:");
-    //
-    //  Determine the bandwidth of the coefficient matrix.
-    //
-    ib = bandwidth(NNODES, ELEMENT_NUM, element_node, NODE_NUM);
-
-    std::cout << "\n";
-    std::cout << "  The matrix half bandwidth is " << ib << "\n";
-    std::cout << "  The matrix row size is       " << 3 * ib + 1 << "\n";
-    //
-    //  Make an EPS picture of the nodes.
-    //
-    if (NX <= 10 && NY <= 10)
-    {
-        node_label = true;
-        nodes_plot (node_eps_file_name, NODE_NUM, node_xy, node_label);
-
-        std::cout << "\n";
-        std::cout << "FEM2D_HEAT_RECTANGLE:\n";
-        std::cout << "  Wrote an EPS file\n";
-        std::cout << "    \"" << node_eps_file_name << "\".\n";
-        std::cout << "  containing a picture of the nodes.\n";
-    }
-    //
-    //  Write the nodes to an ASCII file that can be read into MATLAB.
-    //
-    nodes_write (NODE_NUM, node_xy, node_txt_file_name);
-
-    std::cout << "\n";
-    std::cout << "FEM2D_HEAT_RECTANGLE:\n";
-    std::cout << "  Wrote an ASCII node file\n";
-    std::cout << "    " << node_txt_file_name << "\n";
-    std::cout << "  of the form\n";
-    std::cout << "    X(I), Y(I)\n";
-    std::cout << "  which can be used for plotting.\n";
-    //
-    //  Make a picture of the elements.
-    //
-    if (NX <= 10 && NY <= 10)
-    {
-        node_show = 2;
-        triangle_show = 2;
-
-        triangulation_order6_plot(triangulation_eps_file_name, NODE_NUM,
-		node_xy, ELEMENT_NUM, element_node, node_show, triangle_show);
-        std::cout << "\n";
-        std::cout << "FEM2D_HEAT_RECTANGLE:\n";
-        std::cout << "  Wrote an EPS file\n";
-        std::cout << "    \"" << triangulation_eps_file_name << "\".\n";
-        std::cout << "  containing a picture of the elements.\n";
-    }
-    //
-    //  Write the elements to a file that can be read into MATLAB.
-    //
-    element_write(NNODES, ELEMENT_NUM, element_node,
-	triangulation_txt_file_name);
-
-    std::cout << "\n";
-    std::cout << "FEM2D_HEAT_RECTANGLE:\n";
-    std::cout << "  Wrote an ASCII element file\n";
-    std::cout << "    \"" << triangulation_txt_file_name << "\".\n";
-    std::cout << "  of the form\n";
-    std::cout << "    Node(1) Node(2) Node(3) Node(4) Node(5) Node(6)\n";
-    std::cout << "  which can be used for plotting.\n";
-    //
-    //  Set time stepping quantities.
-    //
-    time_init = 0.0;
-    time_final = TIME_END;
-    time_step_num = NB_ITERATIONS;
-    time_step_size = (time_final - time_init) / (double)(time_step_num);
-    //
-    //  Allocate space.
-    //
-    a = new double[(3*ib+1)*NODE_NUM];
-    dudx_exact = new double[NODE_NUM];
-    dudy_exact = new double[NODE_NUM];
-    f = new double[NODE_NUM];
-    pivot = new int[NODE_NUM];
-    u = new double[NODE_NUM];
-    u_exact = new double[NODE_NUM];
-    u_old = new double[NODE_NUM];
-    //
-    //  Set the value of U at the initial time.
-    //
-    time = time_init;
-    exact_u(NODE_NUM, node_xy, time, u_exact, dudx_exact, dudy_exact);
-
-    for(node = 0; node < NODE_NUM; node++)
-        u[node] = u_exact[node];
-
-    time_unit.open(time_file_name);
-
-    if (!time_unit)
-    {
-        std::cout << "\n";
-        std::cout << "FEM2D_HEAT_RECTANGLE- Warning!\n";
-        std::cout << "  Could not write the time file \"" << time_file_name << "\".\n";
-        exit(1);
-    }
-
-    time_unit << "  " << std::setw(14) << time << "\n";
-
-    solution_write(NODE_NUM, u, u_file_name);
-    //
-    //  Time looping.
-    //
-    std::cout << "\n";
-    std::cout << "     Time        L2 Error       H1 Error\n";
-    std::cout << "\n";
-
-    for(time_step = 1; time_step <= time_step_num; time_step++ )
-    {
-        time_old = time;
-        for ( node = 0; node < NODE_NUM; node++ )
-            u_old[node] = u[node];
-        delete [] u;
-
-        time = ((double)(time_step_num - time_step) * time_init	+
-		(double)(time_step) * time_final) /
-		(double)(time_step_num);
-        //
-        //  Assemble the coefficient matrix A and the right-hand side F of the
-        //  finite element equations.
-        //
-        assemble(NODE_NUM, node_xy, NNODES, ELEMENT_NUM, element_node,
-		QUAD_NUM, wq, xq, yq, element_area, ib, time, a, f);
-
-        if (false)
-        {
-            dgb_print_some(NODE_NUM, NODE_NUM, ib, ib, a, 10, 1, 12, 25,
-			    "  Initial block of coefficient matrix A:");
-            r8vec_print_some(NODE_NUM, f, 1, 10,
-			    "  Part of the right hand side F:");
-        }
-        //
-        //  Modify the coefficient matrix and right hand side to account for the dU/dt
-        //  term, which we are treating using the backward Euler formula.
-        //
-        adjust_backward_euler(NODE_NUM, node_xy, NNODES, ELEMENT_NUM,
-			      element_node, QUAD_NUM, wq, xq, yq, element_area,
-			      ib, time, time_step_size, u_old, a, f);
-
-        if (false)
-        {
-            dgb_print_some(NODE_NUM, NODE_NUM, ib, ib, a, 10, 1, 12, 25,
-			    "  A after DT adjustment:");
-            r8vec_print_some ( NODE_NUM, f, 1, 10, "  F after DT adjustment:");
-        }
-        //
-        //  Modify the coefficient matrix and right hand side to account for
-        //  boundary conditions.
-        //
-        adjust_boundary(NODE_NUM, node_xy, node_boundary, ib, time, a, f);
-
-        if (false)
-        {
-            dgb_print_some(NODE_NUM, NODE_NUM, ib, ib, a, 10, 1, 12, 25,
-		"  A after BC adjustment:");
-            r8vec_print_some(NODE_NUM, f, 1, 10, "  F after BC adjustment:");
-        }
-        //
-        //  Solve the linear system using a banded solver.
-        //
-        if (dgb_fa(NODE_NUM, ib, ib, a, pivot) != 0)
-        {
-            std::cout << "\n";
-            std::cout << "FEM2D_HEAT_RECTANGLE - Error!\n";
-            std::cout << "  DGB_FA returned an error condition.\n";
-            std::cout << "\n";
-            std::cout << "  The linear system was not factored, and the\n";
-            std::cout << "  algorithm cannot proceed.\n";
-            exit (1);
-        }
-
-        job = 0;
-        u = dgb_sl (NODE_NUM, ib, ib, a, pivot, f, job);
-
-        if (false)
-            r8vec_print_some(NODE_NUM, u, 1, 10,
-		"  Part of the solution vector:");
-        //
-        //  Calculate error using 13 point quadrature rule.
-        //
-        errors(element_area, element_node, node_xy, u, ELEMENT_NUM, NNODES,
-		NODE_NUM, time, &el2, &eh1);
-        //
-        //  Compare the exact and computed solutions just at the nodes.
-        //
-        if (false)
-            compare(NODE_NUM, node_xy, time, u);
-        //
-        //  Increment the file name, and write the new solution.
-        //
-        time_unit << std::setw(14) << time << "\n";
-        file_name_inc(u_file_name);
-        solution_write(NODE_NUM, u, u_file_name);
-    }
-    //
-    //  Deallocate memory.
-    //
-    delete [] a;
-    delete [] dudx_exact;
-    delete [] dudy_exact;
-    delete [] f;
-    delete [] node_boundary;
-    delete [] pivot;
-    delete [] u;
-    delete [] u_exact;
-    delete [] u_old;
-
-    time_unit.close();
-    //
-    //  Terminate.
-    //
-    std::cout << "\n";
-    std::cout << "FEM2D_HEAT_RECTANGLE:\n";
-    std::cout << "  Normal end of execution.\n";
-
-    std::cout << "\n";
-    timestamp();
-
-    return 0;
-}
-
-void adjust_backward_euler(int node_num, double node_xy[], int nnodes,
-	int element_num, int element_node[], int quad_num, double wq[],
-	double xq[], double yq[], double element_area[], int ib, double time,
-	double time_step_size, double u_old[], double a[], double f[])
+void adjust_backward_euler(/*int node_num, */double node_xy[], int nnodes, int element_num, int element_node[], int quad_num, double wq[], double xq[], double yq[], double element_area[], int ib, /*double time, */double time_step_size, double u_old[], double a[], double f[])
 {
     int basis;
     double bi;
@@ -448,9 +31,9 @@ void adjust_backward_euler(int node_num, double node_xy[], int nnodes,
     double dbjdx;
     double dbjdy;
     int element;
-    int i;
-    int ip;
-    int ipp;
+    //int i;
+    //int ip;
+    //int ipp;
     int j;
     int node;
     int quad;
@@ -471,8 +54,7 @@ void adjust_backward_euler(int node_num, double node_xy[], int nnodes,
             {
                 node = element_node[test+element*nnodes];
 
-                qbf(x, y, element, test, node_xy, element_node,	element_num,
-			nnodes, node_num, &bi, &dbidx, &dbidy);
+                qbf(x, y, element, test, node_xy, element_node,	/*element_num, */nnodes, /*node_num, */&bi, &dbidx, &dbidy);
                 //
                 //  Carry the U_OLD term to the right hand side.
                 //
@@ -483,23 +65,20 @@ void adjust_backward_euler(int node_num, double node_xy[], int nnodes,
                 for (basis = 0; basis < nnodes; basis++)
                 {
                     j = element_node[basis+element*nnodes];
-                    qbf(x, y, element, basis, node_xy, element_node,
-			element_num, nnodes, node_num, &bj, &dbjdx, &dbjdy);
-                    a[node-j+2*ib+j*(3*ib+1)] += w * bi * bj / time_step_size;
+                    qbf(x, y, element, basis, node_xy, element_node,/* element_num, */nnodes, /*node_num, */&bj, &dbjdx, &dbjdy);
+                    a[node-j+2*ib+j*(3*ib+1)] = a[node-j+2*ib+j*(3*ib+1)] + w * bi * bj / time_step_size;
                 }
             }
         }
     }
-
     return;
 }
 
-void adjust_boundary(int node_num, double node_xy[], int node_boundary[],
-	int ib, double time, double a[], double f[])
+void adjust_boundary(int node_num, double node_xy[], int node_boundary[], int ib, double time, double a[], double f[])
 {
     double *dudx_exact;
     double *dudy_exact;
-    int i;
+    //int i;
     int j;
     int jhi;
     int jlo;
@@ -535,7 +114,7 @@ void adjust_boundary(int node_num, double node_xy[], int node_boundary[],
     return;
 }
 
-void area_set(int node_num, double node_xy[], int nnodes, int element_num, int element_node[], double element_area[])
+void area_set(/*int node_num, */double node_xy[], int nnodes, int element_num, int element_node[], double element_area[])
 {
     int element;
     int i1;
@@ -567,9 +146,7 @@ void area_set(int node_num, double node_xy[], int nnodes, int element_num, int e
     return;
 }
 
-void assemble(int node_num, double node_xy[], int nnodes, int element_num,
-	int element_node[], int quad_num, double wq[], double xq[], double yq[],
-	double element_area[], int ib, double time, double a[], double f[])
+void assemble(int node_num, double node_xy[], int nnodes, int element_num, int element_node[], int quad_num, double wq[], double xq[], double yq[], double element_area[], int ib, double time, double a[], double f[])
 {
     double aij;
     int basis;
@@ -614,9 +191,8 @@ void assemble(int node_num, double node_xy[], int nnodes, int element_num,
             for (test = 0; test < nnodes; test++)
             {
                 node = element_node[test+element*nnodes];
-                qbf(x, y, element, test, node_xy, element_node,	element_num,
-		    nnodes, node_num, &bi, &dbidx, &dbidy);
-                f[node] += w * rhs(x, y, time) * bi;
+                qbf(x, y, element, test, node_xy, element_node,	/*element_num, */nnodes, /*node_num, */&bi, &dbidx, &dbidy);
+                f[node] = f[node] + w * rhs(x, y, time) * bi;
                 //
                 //  We are about to compute a contribution associated with the
                 //  I-th test function and the J-th basis function, and add this
@@ -632,8 +208,7 @@ void assemble(int node_num, double node_xy[], int nnodes, int element_num,
                 for(basis = 0; basis < nnodes; basis++)
                 {
                     j = element_node[basis + element * nnodes];
-                    qbf(x, y, element, basis, node_xy, element_node,
-		        element_num, nnodes, node_num, &bj, &dbjdx, &dbjdy);
+                    qbf(x, y, element, basis, node_xy, element_node, /*element_num, */nnodes, /*node_num, */&bj, &dbjdx, &dbjdy);
                     aij = dbidx * dbjdx + dbidy * dbjdy;
                     a[node-j+2*ib+j*(3*ib+1)] += w * aij;
                 }
@@ -643,21 +218,20 @@ void assemble(int node_num, double node_xy[], int nnodes, int element_num,
     return;
 }
 
-int bandwidth(int nnodes, int element_num, int element_node[], int node_num)
+int bandwidth(int nnodes, int element_num, int element_node[]/*, int node_num*/)
 {
     int element;
     int i;
     int iln;
-    int in;
+    //int in;
     int j;
     int jln;
-    int jn;
+    //int jn;
     int nhba;
 
     nhba = 0;
 
     for (element = 0; element < element_num; element++)
-    {
         for (iln = 0; iln < nnodes; iln++)
         {
             i = element_node[iln+element*nnodes];
@@ -667,7 +241,6 @@ int bandwidth(int nnodes, int element_num, int element_node[], int node_num)
                 nhba = std::max(nhba, j - i);
             }
         }
-    }
     return nhba;
 }
 
@@ -804,9 +377,7 @@ int dgb_fa(int n, int ml, int mu, double a[], int pivot[])
     }
     return 0;
 }
-
-void dgb_print_some(int m, int n, int ml, int mu, double a[],
-	int ilo, int jlo, int ihi, int jhi, char *title)
+void dgb_print_some(int m, int n, int ml, int mu, double a[], int ilo, int jlo, int ihi, int jhi, std::string title)
 {
 # define INCX 5
 
@@ -853,13 +424,9 @@ void dgb_print_some(int m, int n, int ml, int mu, double a[],
             for ( j = j2lo; j <= j2hi; j++ )
             {
                 if ( ml < i-j || mu < j-i )
-                {
                     std::cout << "            ";
-                }
                 else
-                {
                     std::cout << std::setw(10) << a[i-j+ml+mu+(j-1)*col] << "  ";
-                }
             }
             std::cout << "\n";
         }
@@ -871,8 +438,7 @@ void dgb_print_some(int m, int n, int ml, int mu, double a[],
 # undef INCX
 }
 
-double *dgb_sl ( int n, int ml, int mu, double a[], int pivot[], double b[],
-	int job )
+double *dgb_sl(int n, int ml, int mu, double a[], int pivot[], double b[], int job)
 {
     int col = 2 * ml + mu + 1;
     int i;
@@ -888,9 +454,7 @@ double *dgb_sl ( int n, int ml, int mu, double a[], int pivot[], double b[],
     x = new double[n];
 
     for ( i = 0; i < n; i++ )
-    {
         x[i] = b[i];
-    }
     //
     m = mu + ml + 1;
     //
@@ -915,9 +479,7 @@ double *dgb_sl ( int n, int ml, int mu, double a[], int pivot[], double b[],
                     x[k-1] = t;
                 }
                 for ( i = 1; i <= lm; i++ )
-                {
                     x[k+i-1] = x[k+i-1] + x[k-1] * a[m+i-1+(k-1)*col];
-                }
             }
         }
         //
@@ -930,9 +492,7 @@ double *dgb_sl ( int n, int ml, int mu, double a[], int pivot[], double b[],
             la = m - lm;
             lb = k - lm;
             for ( i = 0; i <= lm-1; i++ )
-            {
                 x[lb+i-1] = x[lb+i-1] - x[k-1] * a[la+i-1+(k-1)*col];
-            }
         }
     }
     //
@@ -949,9 +509,7 @@ double *dgb_sl ( int n, int ml, int mu, double a[], int pivot[], double b[],
             la = m - lm;
             lb = k - lm;
             for ( i = 0; i <= lm-1; i++ )
-            {
                 x[k-1] = x[k-1] - x[lb+i-1] * a[la+i-1+(k-1)*col];
-            }
             x[k-1] = x[k-1] / a[m-1+(k-1)*col];
         }
         //
@@ -981,14 +539,13 @@ double *dgb_sl ( int n, int ml, int mu, double a[], int pivot[], double b[],
     return x;
 }
 
-void element_write ( int nnodes, int element_num, int element_node[],
-        char *output_filename )
+void element_write(int nnodes, int element_num, int element_node[], std::string output_filename)
 {
     int element;
     int i;
     std::ofstream output;
 
-    output.open ( output_filename );
+    output.open(output_filename.c_str());
 
     if ( !output )
     {
@@ -1012,9 +569,7 @@ void element_write ( int nnodes, int element_num, int element_node[],
     return;
 }
 
-void errors ( double element_area[], int element_node[], double node_xy[],
-        double u[], int element_num, int nnodes, int node_num, double time,
-        double *el2, double *eh1 )
+void errors(double element_area[], int element_node[], double node_xy[], double u[], int element_num, int nnodes, /*int node_num, */double time, double *el2, double *eh1)
 {
 # define NQE 13
 
@@ -1029,17 +584,17 @@ void errors ( double element_area[], int element_node[], double node_xy[],
     int element;
     int i;
     int in1;
-    int ip;
+    //int ip;
     int quad;
     double u_exact[1];
     double uh;
     double wqe[NQE];
     double x;
-    double x1;
+    //double x1;
     double xqe[NQE];
     double xy[2];
     double y;
-    double y1;
+    //double y1;
     double yqe[NQE];
 
     *el2 = 0.0;
@@ -1050,8 +605,7 @@ void errors ( double element_area[], int element_node[], double node_xy[],
     //
     for ( element = 0; element < element_num; element++ )
     {
-        quad_e ( node_xy, element_node, element, element_num,
-                nnodes, node_num, NQE, wqe, xqe, yqe );
+        quad_e(node_xy, element_node, element, /*element_num, */nnodes, /*node_num, NQE, */wqe, xqe, yqe);
         //
         //  For each quadrature point, evaluate the computed solution and its X and
         //  Y derivatives.
@@ -1070,8 +624,7 @@ void errors ( double element_area[], int element_node[], double node_xy[],
             {
                 i = element_node[in1+element*nnodes];
 
-                qbf ( x, y, element, in1, node_xy,
-                        element_node, element_num, nnodes, node_num, &bi, &dbidx, &dbidy );
+                qbf(x, y, element, in1, node_xy, element_node, /*element_num, */nnodes, /*node_num, */&bi, &dbidx, &dbidy);
 
                 uh    = uh    + bi    * u[i];
                 dudxh = dudxh + dbidx * u[i];
@@ -1105,8 +658,7 @@ void errors ( double element_area[], int element_node[], double node_xy[],
 # undef NQE
 }
 
-void exact_u ( int node_num, double node_xy[], double time, double u[],
-        double dudx[], double dudy[] )
+void exact_u(int node_num, double node_xy[], double time, double u[], double dudx[], double dudy[])
 {
 # define PI 3.141592653589793
 
@@ -1128,7 +680,7 @@ void exact_u ( int node_num, double node_xy[], double time, double u[],
 # undef PI
 }
 
-void file_name_inc ( char *file_name )
+void file_name_inc(std::string file_name)
 {
     char c;
     int change;
@@ -1149,7 +701,7 @@ void file_name_inc ( char *file_name )
 
     for ( i = lens-1; 0 <= i; i-- )
     {
-        c = *(file_name+i);
+        c = file_name[i];
 
         if ( '0' <= c && c <= '9' )
         {
@@ -1157,26 +709,24 @@ void file_name_inc ( char *file_name )
             if ( c == '9' )
             {
                 c = '0';
-                *(file_name+i) = c;
+                file_name[i] = c;
             }
             else
             {
                 c = c + 1;
-                *(file_name+i) = c;
+                file_name[i] = c;
                 return;
             }
         }
     }
 
-    if ( change == 0 )
-    {
-        strcpy ( file_name, " " );
-    }
+    if (!change)
+        file_name = "";
 
     return;
 }
 
-void grid_t6 ( int nx, int ny, int nnodes, int element_num, int element_node[] )
+void grid_t6(int nx, int ny, int nnodes, /*int element_num, */int element_node[])
 {
     int c;
     int e;
@@ -1230,19 +780,15 @@ void grid_t6 ( int nx, int ny, int nnodes, int element_num, int element_node[] )
     return;
 }
 
-void i4vec_print_some ( int n, int a[], int max_print, char *title )
+void i4vec_print_some(int n, int a[], int max_print, std::string title)
 {
     int i;
 
     if ( max_print <= 0 )
-    {
         return;
-    }
 
     if ( n <= 0 )
-    {
         return;
-    }
 
     if ( 0 < s_len_trim ( title ) )
     {
@@ -1286,7 +832,7 @@ void i4vec_print_some ( int n, int a[], int max_print, char *title )
     return;
 }
 
-int *node_boundary_set ( int nx, int ny, int node_num )
+int *node_boundary_set(int nx, int ny, int node_num)
 {
     int i;
     int j;
@@ -1319,13 +865,12 @@ int *node_boundary_set ( int nx, int ny, int node_num )
     return node_boundary;
 }
 
-void nodes_plot ( char *file_name, int node_num, double node_xy[],
-	bool node_label )
+void nodes_plot(std::string file_name, int node_num, double node_xy[]/*, bool node_label*/)
 {
     int circle_size;
     int delta;
     std::ofstream file_unit;
-    int i;
+    //int i;
     int node;
     double x_max;
     double x_min;
@@ -1419,7 +964,7 @@ void nodes_plot ( char *file_name, int node_num, double node_xy[],
         y_scale = x_scale;
     }
 
-    file_unit.open ( file_name );
+    file_unit.open(file_name.c_str());
 
     if ( !file_unit )
     {
@@ -1590,16 +1135,16 @@ void nodes_plot ( char *file_name, int node_num, double node_xy[],
     return;
 }
 
-void nodes_write ( int node_num, double node_xy[], char *output_filename )
+void nodes_write(int node_num, double node_xy[], std::string output_filename)
 {
     int node;
     std::ofstream output;
     double x;
     double y;
 
-    output.open ( output_filename );
+    output.open(output_filename.c_str());
 
-    if ( !output )
+    if (!output)
     {
         std::cout << "\n";
         std::cout << "NODES_WRITE - Warning!\n";
@@ -1621,9 +1166,7 @@ void nodes_write ( int node_num, double node_xy[], char *output_filename )
     return;
 }
 
-void qbf ( double x, double y, int element, int inode, double node_xy[],
-        int element_node[], int element_num, int nnodes,
-        int node_num, double *b, double *dbdx, double *dbdy )
+void qbf(double x, double y, int element, int inode, double node_xy[], int element_node[], /*int element_num, */int nnodes, /*int node_num, */double *b, double *dbdx, double *dbdy)
 {
     double dbdr;
     double dbds;
@@ -1729,8 +1272,7 @@ void qbf ( double x, double y, int element, int inode, double node_xy[],
     return;
 }
 
-void quad_a ( double node_xy[], int element_node[], int element_num,
-	int node_num, int nnodes, double wq[], double xq[], double yq[] )
+void quad_a(double node_xy[], int element_node[], int element_num, /*int node_num, */int nnodes, double wq[], double xq[], double yq[])
 {
     int element;
     int ip1;
@@ -1772,9 +1314,7 @@ void quad_a ( double node_xy[], int element_node[], int element_num,
     return;
 }
 
-void quad_e ( double node_xy[], int element_node[],
-        int element, int element_num, int nnodes, int node_num, int nqe,
-        double wqe[], double xqe[], double yqe[] )
+void quad_e(double node_xy[], int element_node[], int element, /*int element_num, */int nnodes, /*int node_num, int nqe, */double wqe[], double xqe[], double yqe[])
 {
     int i;
     int ii;
@@ -1859,12 +1399,12 @@ void quad_e ( double node_xy[], int element_node[],
     return;
 }
 
-double r8_huge ( void )
+double r8_huge()
 {
-    return ( double ) HUGE_VAL;
+    return (double)HUGE_VAL;
 }
 
-void r8vec_print_some ( int n, double a[], int i_lo, int i_hi, char *title )
+void r8vec_print_some(int n, double a[], int i_lo, int i_hi, std::string title)
 {
     int i;
 
@@ -1884,7 +1424,7 @@ void r8vec_print_some ( int n, double a[], int i_lo, int i_hi, char *title )
     return;
 }
 
-double rhs ( double x, double y, double time )
+double rhs(double x, double y, double time)
 {
 # define PI 3.141592653589793
 
@@ -1903,33 +1443,32 @@ double rhs ( double x, double y, double time )
 # undef PI
 }
 
-int s_len_trim ( char *s )
+int s_len_trim(std::string s)
 {
-    int n;
+    return s.find(' ');
+    /*int n;
     char* t;
 
-    n = strlen ( s );
-    t = s + strlen ( s ) - 1;
+    n = s.size();
+    t = s + strlen (s) - 1;
 
-    while ( 0 < n )
+    while (0 < n)
     {
-        if ( *t != ' ' )
-        {
+        if (*t != ' ')
             return n;
-        }
         t--;
         n--;
     }
 
-    return n;
+    return n;*/
 }
 
-void solution_write ( int node_num, double u[], char *u_file_name )
+void solution_write(int node_num, double u[], std::string u_file_name)
 {
     int node;
     std::ofstream u_file;
 
-    u_file.open ( u_file_name );
+    u_file.open(u_file_name.c_str());
 
     if ( !u_file )
     {
@@ -1973,15 +1512,13 @@ void timestamp()
 # undef TIME_SIZE
 }
 
-void triangulation_order6_plot ( char *file_name, int node_num,
-	double node_xy[], int tri_num, int triangle_node[], int node_show,
-	int triangle_show )
+void triangulation_order6_plot(std::string file_name, int node_num, double node_xy[], int tri_num, int triangle_node[], int node_show, int triangle_show)
 {
     double ave_x;
     double ave_y;
     int circle_size;
     int delta;
-    int e;
+    //int e;
     std::ofstream file_unit;
     int i;
     int ip1;
@@ -2011,20 +1548,12 @@ void triangulation_order6_plot ( char *file_name, int node_num,
     //
     x_max = -r8_huge ( );
     for ( node = 0; node < node_num; node++ )
-    {
         if ( x_max < node_xy[0+node*2] )
-        { 
             x_max = node_xy[0+node*2];
-        }
-    }
     x_min = r8_huge ( );
     for ( node = 0; node < node_num; node++ )
-    {
         if ( node_xy[0+node*2] < x_min )
-        {
             x_min = node_xy[0+node*2];
-        }
-    }
     x_scale = x_max - x_min;
 
     x_max = x_max + 0.05 * x_scale;
@@ -2033,20 +1562,12 @@ void triangulation_order6_plot ( char *file_name, int node_num,
 
     y_max = -r8_huge ( );
     for ( node = 0; node < node_num; node++ )
-    {
         if ( y_max < node_xy[1+node*2] )
-        {
             y_max = node_xy[1+node*2];
-        }
-    }
     y_min = r8_huge ( );
     for ( node = 0; node < node_num; node++ )
-    {
         if ( node_xy[1+node*2] < y_min )
-        {
             y_min = node_xy[1+node*2];
-        }
-    }
     y_scale = y_max - y_min;
 
     y_max = y_max + 0.05 * y_scale;
@@ -2080,7 +1601,7 @@ void triangulation_order6_plot ( char *file_name, int node_num,
         y_scale = x_scale;
     }
 
-    file_unit.open ( file_name );
+    file_unit.open(file_name.c_str());
 
     if ( !file_unit )
     {
@@ -2160,25 +1681,15 @@ void triangulation_order6_plot ( char *file_name, int node_num,
     //  Draw the nodes.
     //
     if ( node_num <= 200 )
-    {
         circle_size = 5;
-    }
     else if ( node_num <= 500 )
-    {
         circle_size = 4;
-    }
     else if ( node_num <= 1000 )
-    {
         circle_size = 3;
-    }
     else if ( node_num <= 5000 )
-    { 
         circle_size = 2;
-    }
     else
-    {
         circle_size = 1;
-    }
     if ( 1 <= node_show )
     {
         file_unit << "%\n";
@@ -2351,8 +1862,7 @@ void triangulation_order6_plot ( char *file_name, int node_num,
     return;
 }
 
-void xy_set ( int nx, int ny, int node_num, double xl, double xr, double yb,
-        double yt, double node_xy[] )
+void xy_set(int nx, int ny, /*int node_num, */double xl, double xr, double yb, double yt, double node_xy[])
 {
     int i;
     int j;
