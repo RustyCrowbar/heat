@@ -53,7 +53,6 @@ void adjust_backward_euler(/*int node_num, */double node_xy[], int nnodes, int e
             for (test = 0; test < nnodes; test++)
             {
                 node = element_node[test+element*nnodes];
-
                 qbf(x, y, element, test, node_xy, element_node,	/*element_num, */nnodes, /*node_num, */&bi, &dbidx, &dbidy);
                 //
                 //  Carry the U_OLD term to the right hand side.
@@ -90,7 +89,6 @@ void adjust_boundary(int node_num, double node_xy[], int node_boundary[], int ib
     u_exact = new double[node_num];
     dudx_exact = new double[node_num];
     dudy_exact = new double[node_num];
-
     exact_u(node_num, node_xy, time, u_exact, dudx_exact, dudy_exact);
 
     for (node = 0; node < node_num; node++)
@@ -99,7 +97,6 @@ void adjust_boundary(int node_num, double node_xy[], int node_boundary[], int ib
         {
             jlo = std::max(node - ib, 0);
             jhi = std::min(node + ib, node_num - 1);
-
             for (j = jlo; j <= jhi; j++)
                 a[node-j+2*ib+j*(3*ib+1)] = 0.0;
             a[node-node+2*ib+node*(3*ib+1)] = 1.0;
@@ -110,7 +107,6 @@ void adjust_boundary(int node_num, double node_xy[], int node_boundary[], int ib
     delete [] u_exact;
     delete [] dudx_exact;
     delete [] dudy_exact;
-
     return;
 }
 
@@ -172,10 +168,8 @@ void assemble(int node_num, double node_xy[], int nnodes, int element_num, int e
         f[i] = 0.0;
 
     for (j = 0; j < node_num; j++)
-    {
         for (i = 0; i < 3*ib + 1; i++)
             a[i+j*(3*ib+1)] = 0.0;
-    }
     //
     //  The actual values of A and F are determined by summing up
     //  contributions from all the elements.
@@ -257,16 +251,13 @@ void compare(int node_num, double node_xy[], double time, double u[])
 
     exact_u (node_num, node_xy, time, u_exact, dudx_exact, dudy_exact);
 
-    std::cout << "\n";
-    std::cout << "COMPARE:\n";
-    std::cout << "  Compare computed and exact solutions at the nodes.\n";
-    std::cout << "\n";
-    std::cout << "         X           Y          U           U\n";
-    std::cout << "                              exact       computed\n";
-    std::cout << "\n";
+    std::cout << std::endl << "COMPARE:" << std::endl
+	<< "  Compare computed and exact solutions at the nodes." << std::endl << std::endl
+	<< "         X           Y          U           U" << std::endl
+	<< "                              exact       computed" << std::endl;
 
     for (node = 0; node < node_num; node++)
-        std::cout << std::setw(12) << node_xy[0+node*2] << "  " << std::setw(12) << node_xy[1+node*2] << "  " << std::setw(12) << u_exact[node]     << "  " << std::setw(12) << u[node] << "\n";
+        std::cout << std::setw(12) << node_xy[0+node*2] << "  " << std::setw(12) << node_xy[1+node*2] << "  " << std::setw(12) << u_exact[node] << "  " << std::setw(12) << u[node] << "\n";
 
     delete [] u_exact;
     delete [] dudx_exact;
@@ -399,23 +390,18 @@ void dgb_print_some(int m, int n, int ml, int mu, double a[], int ilo, int jlo, 
         j2hi = j2lo + INCX - 1;
         j2hi = std::min(j2hi, n);
         j2hi = std::min(j2hi, jhi);
-        std::cout << "\n";
-        std::cout << "  Col: ";
+        std::cout << std::endl << "  Col: ";
         for (j = j2lo; j <= j2hi; j++)
             std::cout << std::setw(7) << j << "       ";
-        std::cout << "\n";
-        std::cout << "  Row\n";
-        std::cout << "  ---\n";
+        std::cout << std::endl
+		<< "  Row" << std::endl << "  ---" << std::endl;
         //
         //  Determine the range of the rows in this strip.
         //
-        i2lo = std::max ( ilo, 1 );
-        i2lo = std::max ( i2lo, j2lo - mu );
+        i2lo = std::max({ilo, 1, j2lo - mu});
+        i2hi = std::min({ihi, m, j2hi + ml});
 
-        i2hi = std::min ( ihi, m );
-        i2hi = std::min ( i2hi, j2hi + ml );
-
-        for ( i = i2lo; i <= i2hi; i++ )
+        for (i = i2lo; i <= i2hi; i++)
         {
             //
             //  Print out (up to) 5 entries in row I, that lie in the current strip.
@@ -428,12 +414,10 @@ void dgb_print_some(int m, int n, int ml, int mu, double a[], int ilo, int jlo, 
                 else
                     std::cout << std::setw(10) << a[i-j+ml+mu+(j-1)*col] << "  ";
             }
-            std::cout << "\n";
+            std::cout << std::endl;
         }
     }
-
-    std::cout << "\n";
-
+    std::cout << std::endl;
     return;
 # undef INCX
 }
@@ -460,32 +444,32 @@ double *dgb_sl(int n, int ml, int mu, double a[], int pivot[], double b[], int j
     //
     //  Solve A * x = b.
     //
-    if ( job == 0 )
+    if (job == 0)
     {
         //
         //  Solve L * Y = B.
         //
-        if ( 1 <= ml )
+        if (1 <= ml)
         {
-            for ( k = 1; k <= n-1; k++ )
+            for (k = 1; k <= n-1; k++)
             {
-                lm = std::min ( ml, n-k );
+                lm = std::min(ml, n-k);
                 l = pivot[k-1];
 
-                if ( l != k )
+                if (l != k)
                 {
                     t      = x[l-1];
                     x[l-1] = x[k-1];
                     x[k-1] = t;
                 }
-                for ( i = 1; i <= lm; i++ )
+                for (i = 1; i <= lm; i++)
                     x[k+i-1] = x[k+i-1] + x[k-1] * a[m+i-1+(k-1)*col];
             }
         }
         //
         //  Solve U * X = Y.
         //
-        for ( k = n; 1 <= k; k-- )
+        for (k = n; 1 <= k; k--)
         {
             x[k-1] = x[k-1] / a[m-1+(k-1)*col];
             lm = std::min ( k, m ) - 1;
@@ -505,28 +489,26 @@ double *dgb_sl(int n, int ml, int mu, double a[], int pivot[], double b[], int j
         //
         for ( k = 1; k <= n; k++ )
         {
-            lm = std::min ( k, m ) - 1;
+            lm = std::min(k, m) - 1;
             la = m - lm;
             lb = k - lm;
-            for ( i = 0; i <= lm-1; i++ )
+            for (i = 0; i <= lm-1; i++)
                 x[k-1] = x[k-1] - x[lb+i-1] * a[la+i-1+(k-1)*col];
             x[k-1] = x[k-1] / a[m-1+(k-1)*col];
         }
         //
         //  Solve L' * X = Y.
         //
-        if ( 1 <= ml )
+        if (1 <= ml)
         {
-            for ( k = n-1; 1 <= k; k-- )
+            for (k = n-1; 1 <= k; k--)
             {
                 lm = std::min ( ml, n-k );
-                for ( i = 1; i <= lm; i++ )
-                {
+                for (i = 1; i <= lm; i++)
                     x[k-1] = x[k-1] + x[k+i-1] * a[m+i-1+(k-1)*col];
-                }
                 l = pivot[k-1];
 
-                if ( l != k )
+                if (l != k)
                 {
                     t      = x[l-1];
                     x[l-1] = x[k-1];
@@ -535,7 +517,6 @@ double *dgb_sl(int n, int ml, int mu, double a[], int pivot[], double b[], int j
             }
         }
     }
-
     return x;
 }
 
@@ -547,25 +528,21 @@ void element_write(int nnodes, int element_num, int element_node[], std::string 
 
     output.open(output_filename.c_str());
 
-    if ( !output )
+    if (!output)
     {
-        std::cout << "\n";
-        std::cout << "ELEMENT_WRITE - Warning!\n";
-        std::cout << "  Could not write the node file.\n";
+        std::cout << std::endl;
+        std::cout << "ELEMENT_WRITE - Warning!" << std::endl;
+        std::cout << "  Could not write the node file." << std::endl;
         return;
     }
 
-    for ( element = 0; element < element_num; element++ )
+    for(element = 0; element < element_num; element++)
     {
-        for ( i = 0; i < nnodes; i++ )
-        {
-            output << std::setw(8)  << element_node[i+element*nnodes] << "  ";
-        }
-        output << "\n";
+        for (i = 0; i < nnodes; i++)
+            output << std::setw(8) << element_node[i+element*nnodes] << "  ";
+        output << std::endl;
     }
-
-    output.close ( );
-
+    output.close();
     return;
 }
 
@@ -603,14 +580,14 @@ void errors(double element_area[], int element_node[], double node_xy[], double 
     //  For each element, retrieve the nodes, area, quadrature weights,
     //  and quadrature points.
     //
-    for ( element = 0; element < element_num; element++ )
+    for(element = 0; element < element_num; element++)
     {
         quad_e(node_xy, element_node, element, /*element_num, */nnodes, /*node_num, NQE, */wqe, xqe, yqe);
         //
         //  For each quadrature point, evaluate the computed solution and its X and
         //  Y derivatives.
         //
-        for ( quad = 0; quad < NQE; quad++ )
+        for(quad = 0; quad < NQE; quad++)
         {
             ar = element_area[element] * wqe[quad];
             x = xqe[quad];
@@ -620,7 +597,7 @@ void errors(double element_area[], int element_node[], double node_xy[], double 
             dudxh = 0.0;
             dudyh = 0.0;
 
-            for ( in1 = 0; in1 < nnodes; in1++ )
+            for(in1 = 0; in1 < nnodes; in1++)
             {
                 i = element_node[in1+element*nnodes];
 
@@ -636,23 +613,22 @@ void errors(double element_area[], int element_node[], double node_xy[], double 
             xy[0] = x;
             xy[1] = y;
 
-            exact_u ( 1, xy, time, u_exact, dudx_exact, dudy_exact );
+            exact_u(1, xy, time, u_exact, dudx_exact, dudy_exact);
             //
             //  Add the weighted value at this quadrature point to the quadrature sum.
             //
-            *el2 = *el2 + ar *   pow ( ( uh    - u_exact[0]  ), 2 );
+            *el2 = *el2 + ar * pow (( uh - u_exact[0]), 2 );
 
-            *eh1 = *eh1 + ar * ( pow ( ( dudxh - dudx_exact[0] ), 2 )
-                    + pow ( ( dudyh - dudy_exact[0] ), 2 ) );
+            *eh1 = *eh1 + ar * (pow(dudxh - dudx_exact[0], 2) + pow(dudyh - dudy_exact[0], 2));
         }
     }
 
-    *el2 = sqrt ( *el2 );
-    *eh1 = sqrt ( *eh1 );
+    *el2 = sqrt(*el2);
+    *eh1 = sqrt(*eh1);
 
     std::cout << std::setw(14) << time
         << std::setw(14) << *el2
-        << std::setw(14) << *eh1 << "\n";
+        << std::setw(14) << *eh1 << std::endl;
 
     return;
 # undef NQE
@@ -666,7 +642,7 @@ void exact_u(int node_num, double node_xy[], double time, double u[], double dud
     double x;
     double y;
 
-    for ( node = 0; node < node_num; node++ )
+    for(node = 0; node < node_num; node++)
     {
         x = node_xy[0+node*2];
         y = node_xy[1+node*2];
@@ -1857,7 +1833,7 @@ void triangulation_order6_plot(std::string file_name, int node_num, double node_
     file_unit << "%%Trailer\n";
     file_unit << "%%EOF\n";
 
-    file_unit.close ( );
+    file_unit.close();
 
     return;
 }
@@ -1867,20 +1843,18 @@ void xy_set(int nx, int ny, /*int node_num, */double xl, double xr, double yb, d
     int i;
     int j;
 
-    for ( j = 0; j < 2*ny - 1; j++ )
-    {
-        for ( i = 0; i < 2*nx - 1; i++ )
+    for(j = 0; j < 2*ny - 1; j++)
+        for(i = 0; i < 2*nx - 1; i++)
         {
             node_xy[0+(i+j*(2*nx-1))*2] =
-                ( double ( 2 * nx - i - 2 ) * xl
-                  + double (          i     ) * xr )
-                / double ( 2 * nx     - 2 );
+                (double(2 * nx - i - 2) * xl
+                  + double (i) * xr)
+                / double(2 * nx - 2);
 
             node_xy[1+(i+j*(2*nx-1))*2] =
-                ( double ( 2 * ny - j - 2 ) * yb
-                  + double (          j     ) * yt )
-                / double ( 2 * ny     - 2 );
+                (double(2 * ny - j - 2) * yb
+                  + double(j) * yt)
+                / double(2 * ny - 2);
         }
-    }
     return;
 }
