@@ -6,6 +6,8 @@ heat*
 !*.cc
 
 objects/
+*lib/
+*bin/
 
 *.txt
 *.eps

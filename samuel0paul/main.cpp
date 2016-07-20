@@ -56,7 +56,7 @@ int main(int argc, char const *argv[])
 	cout << std::nounitbuf;
 	cout << std::setprecision(4) << std::fixed << std::boolalpha;
 	cout << "############################ HMT Assignment ##########################" << endl
-		 << " 2-D Steady State Conduction with and withour Heat Generation" << endl << endl
+		 << " 2-D Steady State Conduction with and without Heat Generation" << endl << endl
 		 << " Author: Samuel Paul Vishesh [UR11ME145] <paulsamuelvishesh@live.com>" << endl
 		 << "######################################################################" << endl << endl;
 
