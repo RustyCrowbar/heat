@@ -60,7 +60,7 @@ int main(int argc, char const *argv[])
 		 << " Author: Samuel Paul Vishesh [UR11ME145] <paulsamuelvishesh@live.com>" << endl
 		 << "######################################################################" << endl << endl;
 
-	char filename[20] = { '\0' };
+	char filename[30] = { '\0' };
 	int iter = 0;
 	const uint64_t x_len = 15;
 	const uint64_t y_len = 15;
