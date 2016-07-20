@@ -7,17 +7,25 @@ def = ./definition/
 G++ = g++ -std=c++1y -Og -Wall -pthread -Wl,--no-as-needed $(Ldir)
 Gdbg = g++ -std=c++1y -Og -Wall -Wshadow -ggdb -pthread -Wl,--no-as-needed $(Ldir)
 release = ./bin/main.out
+libdir = lib
+bindir = bin
 
-all: ./bin/main.out
+all: ./$(bindir)/main.out
 
-./bin/main.out: $(files) $(objects) main.cpp
+./bin/main.out: $(files) $(objects) main.cpp $(bindir)
 	$(G++) $(libs) $(objects) -o $(release) main.cpp
 
-./lib/Nodes.a: $(headers) $(def)/Nodes.cxx
-	$(G++) -o ./lib/Nodes.a -c $(def)/Nodes.cxx
+./lib/Nodes.a: $(headers) $(def)/Nodes.cxx $(libdir)
+	$(G++) -o ./$(libdir)/Nodes.a -c $(def)/Nodes.cxx
 
-./lib/NodesHelper.a: $(headers) $(def)/NodesHelper.cxx
-	$(G++) -o ./lib/NodesHelper.a -c $(def)/NodesHelper.cxx
+./lib/NodesHelper.a: $(headers) $(def)/NodesHelper.cxx $(libdir)
+	$(G++) -o ./$(libdir)/NodesHelper.a -c $(def)/NodesHelper.cxx
+
+$(libdir):
+	mkdir $(libdir)
+
+$(bindir):
+	mkdir $(bindir)
 
 clean:
 	\rm $(objects) && \rm $(release) temperature_*.txt
