@@ -2,7 +2,7 @@
 #include <fstream>
 #include <boost/filesystem.hpp>
 
-std::string get_temp(std::string device_path) {
+uint32_t get_temp(std::string device_path) {
 	std::ifstream ifstr(device_path + "/w1_slave");
 	size_t pos;
 	std::string res;
@@ -10,7 +10,7 @@ std::string get_temp(std::string device_path) {
 		getline(ifstr, res);
 		pos = res.find("t=");
 	} while (pos == std::string::npos);
-	return res.substr(pos + 2);
+	return std::stoi(res.substr(pos + 2));
 }
 
 bool is_suitable(std::string dir) {
