@@ -6,13 +6,18 @@ libs = -lboost_regex
 def = ./definition/
 G++ = g++ -std=c++1y -Og -Wall -pthread -Wl,--no-as-needed $(Ldir)
 Gdbg = g++ -std=c++1y -Og -Wall -Wshadow -ggdb -pthread -Wl,--no-as-needed $(Ldir)
-release = ./bin/main.out
 libdir = lib
+
 bindir = bin
+release = $(bindir)/main.out
 
-all: ./$(bindir)/main.out
+all: $(release)
 
-./bin/main.out: $(files) $(objects) main.cpp $(bindir)
+gif: $(release)
+	./$(release)
+	./tools/make_gif.bash
+
+$(release): $(files) $(objects) main.cpp $(bindir)
 	$(G++) $(libs) $(objects) -o $(release) main.cpp
 
 ./lib/Nodes.a: $(headers) $(def)/Nodes.cxx $(libdir)
