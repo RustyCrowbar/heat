@@ -86,18 +86,19 @@ void Nodes<T>::testBuffers(void) const
 }
 
 template<typename T>
-Nodes<T>::Nodes(const uint64_t& nodeX, const uint64_t& nodeY)
+Nodes<T>::Nodes(const uint64_t nodeX, const uint64_t nodeY,
+		const T initial_temp)
 {
 	this->_nodeX = nodeX;
 	this->_nodeY = nodeY;
-	this->initBuffer();
+	this->initBuffer(initial_temp);
 	this->_hasHeatSource = false;
 	this->_hasCalculated = false;
 	this->_canUseThreads = false;
 }
 
 template<typename T>
-void Nodes<T>::initBuffer(void)
+void Nodes<T>::initBuffer(const T initial_temp)
 {
 	this->_nodes.reserve(this->_nodeY);
 	this->_nodesOld.reserve(this->_nodeY);
@@ -105,7 +106,7 @@ void Nodes<T>::initBuffer(void)
 		std::vector<std::pair<T, bool>> tmp;
 		tmp.reserve(this->_nodeX);
 		for (uint64_t j = 0; j < this->_nodeX; ++j) {
-			tmp.push_back(make_pair(static_cast<T>(0), false));
+			tmp.push_back(make_pair(initial_temp, false));
 		}
 		this->_nodes.push_back(tmp);
 		this->_nodesOld.push_back(std::move(tmp));

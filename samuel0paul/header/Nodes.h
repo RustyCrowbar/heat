@@ -43,7 +43,7 @@ class Nodes
 {
 public:
 	Nodes() = default;
-	Nodes(const uint64_t& nodeX, const uint64_t& nodeY);
+	Nodes(const uint64_t nodeX, const uint64_t nodeY, const T initial_temp);
 	virtual ~Nodes() = default;
 
 	void setWallTemp(const T& northTemp, const T& eastTemp, const T& southTemp, const T& westTemp);
@@ -62,7 +62,7 @@ public:
 	void testBuffers(void) const;
 
 protected:
-	void initBuffer(void);
+	void initBuffer(const T initial_temp);
 	void calculateWThread(const prec_t& epsilon);
 		
 private:

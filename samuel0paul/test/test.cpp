@@ -57,7 +57,7 @@ public:
 			T tempNorth, T tempEast, T tempSouth, T tempWest,
 			T epsilon, bool canUseThreadsChoice): _epsilon(epsilon), _nodeX(nodeX), _nodeY(nodeY)
 	{
-		this->_nodes = HMT::Nodes<prec_t>(nodeX, nodeY);
+		this->_nodes = HMT::Nodes<prec_t>(nodeX, nodeY, 0);
 		this->_nodes.setWallTemp(tempNorth, tempEast, tempSouth, tempWest);
 		this->_nodes.canUseThreads(canUseThreadsChoice);
 		clog << "############### test::NodesWithoutHeatSrc [" << typeid(*this).name() << "] ########" << endl;
@@ -96,7 +96,7 @@ public:
 			const std::vector<std::pair<std::pair<uint64_t, uint64_t>, T>>& tempHeatSrc): _epsilon(epsilon),
 				_nodeX(nodeX), _nodeY(nodeY)
 	{
-		this->_nodes = HMT::Nodes<prec_t>(nodeX, nodeY);
+		this->_nodes = HMT::Nodes<prec_t>(nodeX, nodeY, 0);
 		this->_nodes.setWallTemp(tempNorth, tempEast, tempSouth, tempWest);
 		this->_nodes.canUseThreads(canUseThreadsChoice);
 		for (const auto& i : tempHeatSrc) {
