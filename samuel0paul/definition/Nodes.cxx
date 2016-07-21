@@ -122,7 +122,6 @@ void Nodes<T>::initBuffer(const T initial_temp)
 template<typename T>
 void Nodes<T>::setWallTemp(const T& northTemp, const T& eastTemp, const T& southTemp, const T& westTemp)
 {
-	this->_hasCalculated = false;
 	for (uint64_t i = 0; i < this->_nodeY; ++i) {
 		this->_nodes[i][0].first = westTemp;
 		this->_nodes[i][this->_nodeX - 1].first = eastTemp;
@@ -142,7 +141,6 @@ template<typename T>
 void Nodes<T>::setHeatSource(const uint64_t& posX, const uint64_t& posY, const T& temp)
 {
 	this->_hasHeatSource = true;
-	this->_hasCalculated = false;
 	this->_nodes[posY][posX].first = temp;
 	this->_nodes[posY][posX].second = true;
 }
@@ -197,6 +195,21 @@ void Nodes<T>::calculate(const prec_t epsilon)
 	}
 	else
 		this->_itterCnt = 0; // Ugly as hell
+}
+
+template <typename T>
+void Nodes<T>::clear(const T temp)
+{
+	for (size_t i = 0; i < this->_nodeX; ++i)
+	{
+		for (size_t j = 0; j < this->_nodeY; ++j)
+		{
+			this->nodes_[i][j].first = temp;
+			this->nodes_[i][j].second = false;
+		}
+	}
+
+	this->_hasCalculated = false;
 }
 
 template<typename T>

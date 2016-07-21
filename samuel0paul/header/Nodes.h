@@ -52,6 +52,7 @@ public:
 	bool canUseThreads(void) const noexcept(true);
 	bool hasCalculated(void) const;
 	void calculate(const prec_t epsilon);
+	void clear(const T temp);
 	bool hasHeatSource(void) const noexcept(true);
 	T getTemp(const uint64_t& posX, const uint64_t& posY) const;
 	std::chrono::nanoseconds getDuration(void) const;
