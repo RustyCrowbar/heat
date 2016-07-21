@@ -186,10 +186,6 @@ void Nodes<T>::calculate(const prec_t epsilon)
 				(this->_nodesOld[0][1].first +
 				 this->_nodesOld[1][0].first)
 				/ 2;
-			/*
-			if (diff < std::fabs(this->_nodesOld[0][0].first - this->_nodes[0][0].first))
-				diff = std::fabs(this->_nodesOld[0][0].first - this->_nodes[0][0].first);
-			*/
 		}
 		if (!this->_nodes[0][this->_nodeX - 1].second)
 		{
@@ -197,10 +193,6 @@ void Nodes<T>::calculate(const prec_t epsilon)
 				(this->_nodesOld[0][this->_nodeX - 2].first +
 				 this->_nodesOld[1][this->_nodeX - 1].first)
 				/ 2;
-			/*
-			if (diff < std::fabs(this->_nodesOld[0][this->_nodeX - 1].first - this->_nodes[0][this->_nodeX - 1].first))
-				diff = std::fabs(this->_nodesOld[0][this->_nodeX - 1].first - this->_nodes[0][this->_nodeX - 1].first);
-			*/
 		}
 		if (!this->_nodes[this->_nodeY - 1][0].second)
 		{
@@ -208,10 +200,6 @@ void Nodes<T>::calculate(const prec_t epsilon)
 				(this->_nodesOld[this->_nodeY - 1][1].first +
 				 this->_nodesOld[this->_nodeY - 2][0].first)
 				/ 2;
-			/*
-			if (diff < std::fabs(this->_nodesOld[this->_nodeY - 1][0].first - this->_nodes[this->_nodeY - 1][0].first))
-				diff = std::fabs(this->_nodesOld[this->_nodeY - 1][0].first - this->_nodes[this->_nodeY - 1][0].first);
-			*/
 		}
 		if (!this->_nodes[this->_nodeY - 1][this->_nodeX - 1].second)
 		{
@@ -219,10 +207,6 @@ void Nodes<T>::calculate(const prec_t epsilon)
 				(this->_nodesOld[this->_nodeY - 1][this->_nodeX - 2].first +
 				 this->_nodesOld[this->_nodeY - 2][this->_nodeX - 1].first)
 				/ 2;
-			/*
-			if (diff < std::fabs(this->_nodesOld[this->_nodeY - 1][this->_nodeX -1].first - this->_nodes[this->_nodeY - 1][this->_nodeX - 1].first))
-				diff = std::fabs(this->_nodesOld[this->_nodeY - 1][this->_nodeX - 1].first - this->_nodes[this->_nodeY - 1][this->_nodeX - 1].first);
-			*/
 		}
 
 		// Border nodes
@@ -235,10 +219,6 @@ void Nodes<T>::calculate(const prec_t epsilon)
 					 this->_nodesOld[i - 1][0].first +
 					 this->_nodesOld[i + 1][0].first)
 					/ 3;
-				/*
-				if (diff < std::fabs(this->_nodesOld[i][0].first - this->_nodes[i][0].first))
-					diff = std::fabs(this->_nodesOld[i][0].first - this->_nodes[i][0].first);
-				*/
 			}
 			if (!this->_nodes[i][this->_nodeX - 1].second)
 			{
@@ -247,10 +227,6 @@ void Nodes<T>::calculate(const prec_t epsilon)
 					 this->_nodesOld[i - 1][this->_nodeX - 1].first +
 					 this->_nodesOld[i + 1][this->_nodeX - 1].first)
 					/ 3;
-				/*
-				if (diff < std::fabs(this->_nodesOld[i][this->_nodeX - 1].first - this->_nodes[i][this->_nodeX - 1].first))
-					diff = std::fabs(this->_nodesOld[i][this->_nodeX - 1].first - this->_nodes[i][this->_nodeX - 1].first);
-				*/
 			}
 		}
 		for (uint64_t j = 1; j < this->_nodeX - 1; ++j)
@@ -262,10 +238,6 @@ void Nodes<T>::calculate(const prec_t epsilon)
 					 this->_nodesOld[0][j - 1].first +
 					 this->_nodesOld[0][j + 1].first)
 					/ 3;
-				/*
-				if (diff < std::fabs(this->_nodesOld[0][j].first - this->_nodes[0][j].first))
-					diff = std::fabs(this->_nodesOld[0][j].first - this->_nodes[0][j].first);
-				*/
 			}
 			if (!this->_nodes[this->_nodeY - 1][j].second)
 			{
@@ -274,10 +246,6 @@ void Nodes<T>::calculate(const prec_t epsilon)
 					 this->_nodesOld[this->_nodeY - 1][j - 1].first +
 					 this->_nodesOld[this->_nodeY - 1][j + 1].first)
 					/ 3;
-				/*
-				if (diff < std::fabs(this->_nodesOld[this->_nodeY - 1][j].first - this->_nodes[this->_nodeY - 1][j].first))
-					diff = std::fabs(this->_nodesOld[this->_nodeY - 1][j].first - this->_nodes[this->_nodeY - 1][j].first);
-				*/
 			}
 
 		}
