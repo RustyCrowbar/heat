@@ -1,51 +1,43 @@
-headers = ./header/*.h
-files = ./*cpp ./test/*.cpp ./definition/*.cxx
+CXX_AUX = g++ -std=c++1y -Og -Wall -pthread -Wl,--no-as-needed
+MKDIR=mkdir -p
+
 objects = ./lib/Nodes.a ./lib/NodesHelper.a
 debug_objects = ./lib/debug_Nodes.a ./lib/debug_NodesHelper.a
-Ldir = -L/usr/lib/x86_64-linux-gnu
-libs = -lboost_regex
-def = ./definition/
-G++ = g++ -std=c++1y -Og -Wall -pthread -Wl,--no-as-needed $(Ldir)
-Gdbg = g++ -std=c++1y -Og -Wall -Wshadow -ggdb -pthread -Wl,--no-as-needed $(Ldir)
-libdir = lib
 
+libs = -lboost_regex
+
+defdir = definition
+libdir = lib
 bindir = bin
+
 release_target = $(bindir)/main.out
 debug_target = $(bindir)/debug_main.out
 
-all: $(release_target)
+all: main
 
-debug: $(debug_target)
+main: CXX=${CXX_AUX}
+main: $(bindir) $(libdir) $(release_target)
+
+debug: CXX = ${CXX_AUX} -Wshadow -ggdb
+debug: $(bindir) $(libdir) $(debug_target)
 
 gif: $(release_target)
 	./$(release_target)
 	./tools/make_gif.bash
 
-$(release_target): $(files) $(objects) main.cpp $(bindir)
-	$(G++) $(libs) $(objects) -o $(release_target) main.cpp
+$(release_target): $(objects) main.cpp
+	${CXX} $(libs) $^ -o $@
 
-$(debug_target): $(files) $(debug_objects) main.cpp $(bindir)
-	$(Gdbg) $(libs) $(objects) -o $(debug_target) main.cpp
+$(debug_target): $(debug_objects) main.cpp
+	${CXX} $(libs) $^ -o $@
 
-./lib/Nodes.a: $(headers) $(def)/Nodes.cxx $(libdir)
-	$(G++) -o ./$(libdir)/Nodes.a -c $(def)/Nodes.cxx
+$(libdir)/debug_%.a $(libdir)/%.a: $(defdir)/%.cxx
+	${CXX} -c $^ -o $@
 
-./lib/debug_Nodes.a: $(headers) $(def)/Nodes.cxx $(libdir)
-	$(Gdbg) -o ./$(libdir)/Nodes.a -c $(def)/Nodes.cxx
-
-./lib/NodesHelper.a: $(headers) $(def)/NodesHelper.cxx $(libdir)
-	$(G++) -o ./$(libdir)/NodesHelper.a -c $(def)/NodesHelper.cxx
-
-./lib/debug_NodesHelper.a: $(headers) $(def)/NodesHelper.cxx $(libdir)
-	$(Gdbg) -o ./$(libdir)/NodesHelper.a -c $(def)/NodesHelper.cxx
-
-$(libdir):
-	mkdir $(libdir)
-
-$(bindir):
-	mkdir $(bindir)
+$(bindir) $(libdir):
+	${MKDIR} $@
 
 clean:
-	\rm $(objects) && \rm $(release) temperature_*.txt
+	${RM} -r $(bindir) $(libdir) temperature_*.txt
 
-.PHONY: clean
+.PHONY: debug main clean
