@@ -123,21 +123,12 @@ template<typename T>
 void Nodes<T>::setWallSources(const T& northTemp, const T& eastTemp, const T& southTemp, const T& westTemp)
 {
 	for (uint64_t i = 0; i < this->_nodeY; ++i) {
-		this->_nodes[i][0].first = westTemp;
-		this->_nodes[i][0].second = true;
-		this->_nodes[i][this->_nodeX - 1].first = eastTemp;
-		this->_nodes[i][this->_nodeX - 1].second = true;
+		setHeatSource(0, i, westTemp);
+		setHeatSource(this->_nodeX - 1, i, eastTemp);
 	}
 	for (uint64_t i = 0; i < this->_nodeX; ++i) {
-		this->_nodes[0][i].first = northTemp;
-		this->_nodes[0][i].second = true;
-		this->_nodes[this->_nodeY - 1][i].first = southTemp;
-		this->_nodes[this->_nodeY - 1][i].second = true;
-	}
-	for (uint64_t i = 1; i < this->_nodeY - 1; ++i) {
-		for (uint64_t j = 1; j < this->_nodeX - 1; ++j) {
-			this->_nodes[i][j].first = (northTemp + eastTemp + southTemp + westTemp) / 4;
-		}
+		setHeatSource(i, 0, northTemp);
+		setHeatSource(i, this->_nodeY - 1, southTemp);
 	}
 }
 
