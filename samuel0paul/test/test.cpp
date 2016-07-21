@@ -58,7 +58,7 @@ public:
 			T epsilon, bool canUseThreadsChoice): _epsilon(epsilon), _nodeX(nodeX), _nodeY(nodeY)
 	{
 		this->_nodes = HMT::Nodes<prec_t>(nodeX, nodeY, 0);
-		this->_nodes.setWallTemp(tempNorth, tempEast, tempSouth, tempWest);
+		this->_nodes.setWallSources(tempNorth, tempEast, tempSouth, tempWest);
 		this->_nodes.canUseThreads(canUseThreadsChoice);
 		clog << "############### test::NodesWithoutHeatSrc [" << typeid(*this).name() << "] ########" << endl;
 		clog << "HMT::Nodes obj created..." << endl;
@@ -97,7 +97,7 @@ public:
 				_nodeX(nodeX), _nodeY(nodeY)
 	{
 		this->_nodes = HMT::Nodes<prec_t>(nodeX, nodeY, 0);
-		this->_nodes.setWallTemp(tempNorth, tempEast, tempSouth, tempWest);
+		this->_nodes.setWallSources(tempNorth, tempEast, tempSouth, tempWest);
 		this->_nodes.canUseThreads(canUseThreadsChoice);
 		for (const auto& i : tempHeatSrc) {
 			this->_nodes.setHeatSource(i.first.first, i.first.second, i.second);

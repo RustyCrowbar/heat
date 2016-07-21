@@ -46,7 +46,7 @@ public:
 	Nodes(const uint64_t nodeX, const uint64_t nodeY, const T initial_temp);
 	virtual ~Nodes() = default;
 
-	void setWallTemp(const T& northTemp, const T& eastTemp, const T& southTemp, const T& westTemp);
+	void setWallSources(const T& northTemp, const T& eastTemp, const T& southTemp, const T& westTemp);
 	void setHeatSource(const uint64_t& posX, const uint64_t& posY, const T& temp);
 	void canUseThreads(const bool choice) noexcept(true);
 	bool canUseThreads(void) const noexcept(true);
