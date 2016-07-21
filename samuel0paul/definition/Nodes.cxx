@@ -140,6 +140,12 @@ void Nodes<T>::setHeatSource(const uint64_t& posX, const uint64_t& posY, const T
 	this->_nodes[posY][posX].second = true;
 }
 
+template <typename T>
+void Nodes<T>::setTemperature(const uint64_t posX, const uint64_t posY, const T temp)
+{
+	this->_nodes[posY][posX].first = temp;
+}
+
 template<typename T>
 void Nodes<T>::canUseThreads(const bool choice) noexcept(true)
 {
