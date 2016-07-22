@@ -14,14 +14,17 @@ typeset -li i=${#data_files[@]}
 mkdir -p "$img_dir"
 
 echo "Plotting matrices..."
-(( i = i - 1 ))
-while (( i >= 0 ));
-do
+
+for (( i = i - 1; i >= 0; i = i - 1 )); do
 	local_file=\'${data_files[$i]}\'
 	local_dir=\'$img_dir\'
 	gnuplot -e "output_file_suffix=$i; output_dir=$local_dir; input_file=$local_file" \
-		-c tools/plot_heatmap.plt
-	(( i = i - 1 ))
+		-c tools/plot_heatmap.plt &
+done
+
+jobs=1
+while (( jobs > 0 )); do
+    jobs=$(jobs -r | wc -l)
 done
 
 echo "Building animated GIF..."
