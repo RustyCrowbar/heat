@@ -24,7 +24,7 @@ debug: $(bindir) $(libdir) $(debug_target)
 
 gif: main
 	./$(release_target)
-	./tools/make_gif.bash
+	@./tools/make_gif.bash
 
 $(release_target): $(objects) main.cpp
 	${CXX} $(definitions) $(libs) $^ -o $@
