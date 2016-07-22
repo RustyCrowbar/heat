@@ -62,14 +62,15 @@ int main(int argc, char const *argv[])
 
 	char filename[30] = { '\0' };
 	int iter = 0;
-	const uint64_t x_len = 12;
-	const uint64_t y_len = 12;
+	const uint64_t x_len = 50;
+	const uint64_t y_len = 50;
 	const prec_t epsilon = 1.0;
 	unsigned long long ticks = 0;
 
 	HMT::Nodes<prec_t> nodes(x_len, y_len, 100.0);
-	nodes.setHeatSource(7, 9, 400.0);
-	nodes.canUseThreads(false);
+	nodes.setWallSources(200.0, 800.0, 100.0, 100.0);
+	//nodes.setHeatSource(20, 7, 500.0);
+	nodes.canUseThreads(true);
 	while (!nodes.hasCalculated())
 	{
 		nodes.calculate(epsilon);

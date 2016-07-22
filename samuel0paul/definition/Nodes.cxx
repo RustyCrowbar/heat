@@ -55,9 +55,12 @@ template <typename T>
 class TBB_Calculator
 {
 public:
-	TBB_Calculator(T nextNodes, T oldNodes)
+	TBB_Calculator(T nextNodes, T oldNodes, bool* is_waiting,
+		       size_t* nb_iter)
 		: nodes_{nextNodes}
 		, nodesOld_{oldNodes}
+		, is_waiting_{is_waiting}
+		, nb_iter_{nb_iter}
 	{}
 
 	void operator()(const tbb::blocked_range2d<size_t>& range) const
@@ -67,23 +70,34 @@ public:
 		uint64_t col_begin = range.cols().begin();
 		uint64_t col_end = range.cols().end();
 
-		for (uint64_t i = row_begin; i < row_end; ++i) {
-			for (uint64_t j = col_begin; j < col_end; ++j) {
-				if (!nodes_[i][j].second) {
-					nodes_[i][j].first =
-						(nodesOld_[i - 1][j].first +
-						 nodesOld_[i + 1][j].first +
-						 nodesOld_[i][j - 1].first +
-						 nodesOld_[i][j + 1].first)
-						/ 4;
+		while (*nb_iter_ > 0)
+		{
+			*is_waiting_ = true;
+			while (*is_waiting_)
+				continue;
+
+			std::cout << "Main begin" << std::endl;
+
+			for (uint64_t i = row_begin; i < row_end; ++i) {
+				for (uint64_t j = col_begin; j < col_end; ++j) {
+					if (!nodes_[i][j].second) {
+						nodes_[i][j].first =
+							(nodesOld_[i - 1][j].first +
+							 nodesOld_[i + 1][j].first +
+							 nodesOld_[i][j - 1].first +
+							 nodesOld_[i][j + 1].first)
+							/ 4;
+					}
 				}
 			}
 		}
 	}
 
-public:
+private:
 	T nodes_;
-	T nodesOld_; 
+	T nodesOld_;
+	bool* is_waiting_;
+	size_t* nb_iter_;
 };
 
 /* Functor given to TBB to find the largest value difference between
@@ -391,17 +405,106 @@ void Nodes<T>::clear(const T temp)
 template<typename T>
 void Nodes<T>::calculateWThread(const prec_t epsilon)
 {
+	bool main_thread_waiting = false;
+	size_t nb_iter = 5; // Number of iterations to crunch in one go
+
+	// TODO: handle time and number of iterations
 	this->_startTime = std::chrono::high_resolution_clock::now();
 	++(this->_itterCnt);
-	for (uint64_t i = 0; i < this->_nodeY; ++i)
-		for (uint64_t j = 0; j < this->_nodeX; ++j)
-			this->_nodesOld[i][j] = this->_nodes[i][j];
+
+	std::thread helperThread([this, &nb_iter, &main_thread_waiting]() {
+		while (nb_iter > 0)
+		{
+			while (!main_thread_waiting)
+				continue;
+
+			std::cout << "Auxilliary begin" << std::endl;
+			--nb_iter;
+
+			for (uint64_t i = 0; i < this->_nodeY; ++i)
+				for (uint64_t j = 0; j < this->_nodeX; ++j)
+					this->_nodesOld[i][j] = this->_nodes[i][j];
+
+			// Corner nodes
+			if (!this->_nodes[0][0].second)
+			{
+				this->_nodes[0][0].first =
+					(this->_nodesOld[0][1].first +
+					 this->_nodesOld[1][0].first)
+					/ 2;
+			}
+			if (!this->_nodes[0][this->_nodeX - 1].second)
+			{
+				this->_nodes[0][this->_nodeX - 1].first =
+					(this->_nodesOld[0][this->_nodeX - 2].first +
+					 this->_nodesOld[1][this->_nodeX - 1].first)
+					/ 2;
+			}
+			if (!this->_nodes[this->_nodeY - 1][0].second)
+			{
+				this->_nodes[this->_nodeY - 1][0].first =
+					(this->_nodesOld[this->_nodeY - 1][1].first +
+					 this->_nodesOld[this->_nodeY - 2][0].first)
+					/ 2;
+			}
+			if (!this->_nodes[this->_nodeY - 1][this->_nodeX - 1].second)
+			{
+				this->_nodes[this->_nodeY - 1][this->_nodeX - 1].first =
+					(this->_nodesOld[this->_nodeY - 1][this->_nodeX - 2].first +
+					 this->_nodesOld[this->_nodeY - 2][this->_nodeX - 1].first)
+					/ 2;
+			}
+
+			// Border nodes
+			for (uint64_t i = 1; i < this->_nodeY - 1; ++i)
+			{
+				if (!this->_nodes[i][0].second)
+				{
+					this->_nodes[i][0].first =
+						(this->_nodesOld[i][1].first +
+						 this->_nodesOld[i - 1][0].first +
+						 this->_nodesOld[i + 1][0].first)
+						/ 3;
+				}
+				if (!this->_nodes[i][this->_nodeX - 1].second)
+				{
+					this->_nodes[i][this->_nodeX - 1].first =
+						(this->_nodesOld[i][this->_nodeX - 2].first +
+						 this->_nodesOld[i - 1][this->_nodeX - 1].first +
+						 this->_nodesOld[i + 1][this->_nodeX - 1].first)
+						/ 3;
+				}
+			}
+			for (uint64_t j = 1; j < this->_nodeX - 1; ++j)
+			{
+				if (!this->_nodes[0][j].second)
+				{
+					this->_nodes[0][j].first =
+						(this->_nodesOld[1][j].first +
+						 this->_nodesOld[0][j - 1].first +
+						 this->_nodesOld[0][j + 1].first)
+						/ 3;
+				}
+				if (!this->_nodes[this->_nodeY - 1][j].second)
+				{
+					this->_nodes[this->_nodeY - 1][j].first =
+						(this->_nodesOld[this->_nodeY - 2][j].first +
+						 this->_nodesOld[this->_nodeY - 1][j - 1].first +
+						 this->_nodesOld[this->_nodeY - 1][j + 1].first)
+						/ 3;
+				}
+			}
+
+			main_thread_waiting = false;
+		}
+	});
 
 	// Parallelising the computation of outer nodes is not profitable.
-	calculateOuterNodes();
+	//calculateOuterNodes();
 
 	TBB_Calculator<decltype(this->_nodes.begin())>
-		calculator(this->_nodes.begin(), this->_nodesOld.begin());
+		calculator(this->_nodes.begin(), this->_nodesOld.begin(),
+			   &main_thread_waiting, &nb_iter);
 	TBB_Reductor<decltype(this->_nodes.begin())>
 		reductor(this->_nodes.begin(), this->_nodesOld.begin());
 
@@ -409,6 +512,7 @@ void Nodes<T>::calculateWThread(const prec_t epsilon)
 	tbb::parallel_for(tbb::blocked_range2d<size_t>(1, this->_nodeY - 1,
 						       1, this->_nodeX - 1),
 			  calculator);
+	helperThread.join();
 
 	// Find out if we should stop now
 	tbb::parallel_reduce(tbb::blocked_range2d<size_t>(1, this->_nodeY - 1,
