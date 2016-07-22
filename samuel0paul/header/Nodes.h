@@ -67,6 +67,7 @@ protected:
 	void initBuffer(const T initial_temp);
 	void calculateWThread(const prec_t epsilon);
 	void calculateWoutThread(const prec_t epsilon);
+	void calculateOuterNodes(void);
 		
 private:
 	bool _hasHeatSource, _hasCalculated, _canUseThreads;

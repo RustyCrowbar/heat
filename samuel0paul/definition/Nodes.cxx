@@ -271,78 +271,9 @@ void Nodes<T>::calculateWoutThread(const prec_t epsilon)
 			for (uint64_t j = 0; j < this->_nodeX; ++j)
 				this->_nodesOld[i][j] = this->_nodes[i][j];
 
+		calculateOuterNodes();
+
 		prec_t diff = 0.0f;
-
-		// Corner nodes
-		if (!this->_nodes[0][0].second)
-		{
-			this->_nodes[0][0].first =
-				(this->_nodesOld[0][1].first +
-				 this->_nodesOld[1][0].first)
-				/ 2;
-		}
-		if (!this->_nodes[0][this->_nodeX - 1].second)
-		{
-			this->_nodes[0][this->_nodeX - 1].first =
-				(this->_nodesOld[0][this->_nodeX - 2].first +
-				 this->_nodesOld[1][this->_nodeX - 1].first)
-				/ 2;
-		}
-		if (!this->_nodes[this->_nodeY - 1][0].second)
-		{
-			this->_nodes[this->_nodeY - 1][0].first =
-				(this->_nodesOld[this->_nodeY - 1][1].first +
-				 this->_nodesOld[this->_nodeY - 2][0].first)
-				/ 2;
-		}
-		if (!this->_nodes[this->_nodeY - 1][this->_nodeX - 1].second)
-		{
-			this->_nodes[this->_nodeY - 1][this->_nodeX - 1].first =
-				(this->_nodesOld[this->_nodeY - 1][this->_nodeX - 2].first +
-				 this->_nodesOld[this->_nodeY - 2][this->_nodeX - 1].first)
-				/ 2;
-		}
-
-		// Border nodes
-		for (uint64_t i = 1; i < this->_nodeY - 1; ++i)
-		{
-			if (!this->_nodes[i][0].second)
-			{
-				this->_nodes[i][0].first =
-					(this->_nodesOld[i][1].first +
-					 this->_nodesOld[i - 1][0].first +
-					 this->_nodesOld[i + 1][0].first)
-					/ 3;
-			}
-			if (!this->_nodes[i][this->_nodeX - 1].second)
-			{
-				this->_nodes[i][this->_nodeX - 1].first =
-					(this->_nodesOld[i][this->_nodeX - 2].first +
-					 this->_nodesOld[i - 1][this->_nodeX - 1].first +
-					 this->_nodesOld[i + 1][this->_nodeX - 1].first)
-					/ 3;
-			}
-		}
-		for (uint64_t j = 1; j < this->_nodeX - 1; ++j)
-		{
-			if (!this->_nodes[0][j].second)
-			{
-				this->_nodes[0][j].first =
-					(this->_nodesOld[1][j].first +
-					 this->_nodesOld[0][j - 1].first +
-					 this->_nodesOld[0][j + 1].first)
-					/ 3;
-			}
-			if (!this->_nodes[this->_nodeY - 1][j].second)
-			{
-				this->_nodes[this->_nodeY - 1][j].first =
-					(this->_nodesOld[this->_nodeY - 2][j].first +
-					 this->_nodesOld[this->_nodeY - 1][j - 1].first +
-					 this->_nodesOld[this->_nodeY - 1][j + 1].first)
-					/ 3;
-			}
-
-		}
 
 		// Every non-border node
 		for (uint64_t i = 1; i < this->_nodeY - 1; ++i) {
@@ -369,6 +300,81 @@ void Nodes<T>::calculateWoutThread(const prec_t epsilon)
 }
 
 template <typename T>
+void Nodes<T>::calculateOuterNodes(void)
+{
+	// Corner nodes
+	if (!this->_nodes[0][0].second)
+	{
+		this->_nodes[0][0].first =
+			(this->_nodesOld[0][1].first +
+			 this->_nodesOld[1][0].first)
+			/ 2;
+	}
+	if (!this->_nodes[0][this->_nodeX - 1].second)
+	{
+		this->_nodes[0][this->_nodeX - 1].first =
+			(this->_nodesOld[0][this->_nodeX - 2].first +
+			 this->_nodesOld[1][this->_nodeX - 1].first)
+			/ 2;
+	}
+	if (!this->_nodes[this->_nodeY - 1][0].second)
+	{
+		this->_nodes[this->_nodeY - 1][0].first =
+			(this->_nodesOld[this->_nodeY - 1][1].first +
+			 this->_nodesOld[this->_nodeY - 2][0].first)
+			/ 2;
+	}
+	if (!this->_nodes[this->_nodeY - 1][this->_nodeX - 1].second)
+	{
+		this->_nodes[this->_nodeY - 1][this->_nodeX - 1].first =
+			(this->_nodesOld[this->_nodeY - 1][this->_nodeX - 2].first +
+			 this->_nodesOld[this->_nodeY - 2][this->_nodeX - 1].first)
+			/ 2;
+	}
+
+	// Border nodes
+	for (uint64_t i = 1; i < this->_nodeY - 1; ++i)
+	{
+		if (!this->_nodes[i][0].second)
+		{
+			this->_nodes[i][0].first =
+				(this->_nodesOld[i][1].first +
+				 this->_nodesOld[i - 1][0].first +
+				 this->_nodesOld[i + 1][0].first)
+				/ 3;
+		}
+		if (!this->_nodes[i][this->_nodeX - 1].second)
+		{
+			this->_nodes[i][this->_nodeX - 1].first =
+				(this->_nodesOld[i][this->_nodeX - 2].first +
+				 this->_nodesOld[i - 1][this->_nodeX - 1].first +
+				 this->_nodesOld[i + 1][this->_nodeX - 1].first)
+				/ 3;
+		}
+	}
+	for (uint64_t j = 1; j < this->_nodeX - 1; ++j)
+	{
+		if (!this->_nodes[0][j].second)
+		{
+			this->_nodes[0][j].first =
+				(this->_nodesOld[1][j].first +
+				 this->_nodesOld[0][j - 1].first +
+				 this->_nodesOld[0][j + 1].first)
+				/ 3;
+		}
+		if (!this->_nodes[this->_nodeY - 1][j].second)
+		{
+			this->_nodes[this->_nodeY - 1][j].first =
+				(this->_nodesOld[this->_nodeY - 2][j].first +
+				 this->_nodesOld[this->_nodeY - 1][j - 1].first +
+				 this->_nodesOld[this->_nodeY - 1][j + 1].first)
+				/ 3;
+		}
+
+	}
+}
+
+template <typename T>
 void Nodes<T>::clear(const T temp)
 {
 	for (size_t i = 0; i < this->_nodeX; ++i)
@@ -391,6 +397,9 @@ void Nodes<T>::calculateWThread(const prec_t epsilon)
 	for (uint64_t i = 0; i < this->_nodeY; ++i)
 		for (uint64_t j = 0; j < this->_nodeX; ++j)
 			this->_nodesOld[i][j] = this->_nodes[i][j];
+
+	// Parallelising the computation of outer nodes is not profitable.
+	calculateOuterNodes();
 
 	TBB_Calculator<decltype(this->_nodes.begin())>
 		calculator(this->_nodes.begin(), this->_nodesOld.begin());
