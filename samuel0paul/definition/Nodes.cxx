@@ -397,12 +397,6 @@ void Nodes<T>::calculateWThread(const prec_t epsilon)
 	TBB_Reductor<decltype(this->_nodes.begin())>
 		reductor(this->_nodes.begin(), this->_nodesOld.begin());
 
-	/* dbg
-	for (auto i = 1; i < _nodeY - 1; ++i)
-		for (auto j = 1; j < _nodeX - 1; ++j)
-			if (_nodes[i][j].first != _nodesOld[i][j].first)
-				std::cout << "WTF" << std::endl;
-	*/
 	// Compute a new iteration
 	tbb::parallel_for(tbb::blocked_range2d<size_t>(1, this->_nodeY - 1,
 						       1, this->_nodeX - 1),
@@ -413,8 +407,6 @@ void Nodes<T>::calculateWThread(const prec_t epsilon)
 						          1, this->_nodeX - 1),
 			     reductor);
 	this->_endTime = std::chrono::high_resolution_clock::now();
-	// dbg
-	std::cout << "diff = " << reductor.diff << std::endl;
 	if (reductor.diff <= epsilon)
 		this->_hasCalculated = true;
 }
