@@ -32,6 +32,8 @@ SOFTWARE.
 #include <cstdint>
 #include <chrono>
 #include <thread>
+#include <tuple>
+
 
 using prec_t = long double;
 
@@ -68,11 +70,11 @@ protected:
 	void calculateWThread(const prec_t epsilon);
 	void calculateWoutThread(const prec_t epsilon);
 	void calculateOuterNodes(void);
-		
+
 private:
 	bool _hasHeatSource, _hasCalculated, _canUseThreads;
 	uint64_t _nodeX, _nodeY, _itterCnt;
-	std::vector<std::vector<std::pair<T, bool>>> _nodes, _nodesOld;
+	std::vector<std::vector<std::tuple<T, bool, int>>> _nodes, _nodesOld;
 	std::chrono::time_point<std::chrono::high_resolution_clock> _startTime, _endTime;
 };
 

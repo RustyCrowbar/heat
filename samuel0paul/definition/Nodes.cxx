@@ -40,7 +40,7 @@ SOFTWARE.
 using std::cout;	using std::endl;
 using std::clog;
 using std::cin;
-using std::make_pair;
+using std::make_tuple;
 
 using prec_t = long double;
 
@@ -69,13 +69,13 @@ public:
 
 		for (uint64_t i = row_begin; i < row_end; ++i) {
 			for (uint64_t j = col_begin; j < col_end; ++j) {
-				if (!nodes_[i][j].second) {
-					nodes_[i][j].first =
-						(nodesOld_[i - 1][j].first +
-						 nodesOld_[i + 1][j].first +
-						 nodesOld_[i][j - 1].first +
-						 nodesOld_[i][j + 1].first)
-						/ 4;
+				if (!std::get<1>(nodes_[i][j])) {
+					std::get<0>(nodes_[i][j]) =
+						(std::get<0>(nodesOld_[i - 1][j]) +
+						 std::get<0>(nodesOld_[i + 1][j]) +
+						 std::get<0>(nodesOld_[i][j - 1]) +
+						 std::get<0>(nodesOld_[i][j + 1]))
+						/ std::get<2>(nodes_[i][j]);
 				}
 			}
 		}
@@ -83,7 +83,7 @@ public:
 
 public:
 	T nodes_;
-	T nodesOld_; 
+	T nodesOld_;
 };
 
 /* Functor given to TBB to find the largest value difference between
@@ -114,12 +114,12 @@ public:
 
 		for (uint64_t i = row_begin; i < row_end; ++i)
 			for (uint64_t j = col_begin; j < col_end; ++j) {
-				if (local_diff < std::fabs(nodesOld_[i][j].first - nodes_[i][j].first))
-					local_diff = std::fabs(nodesOld_[i][j].first - nodes_[i][j].first);
+				if (local_diff < std::fabs(std::get<0>(nodesOld_[i][j]) - std::get<0>(nodes_[i][j])))
+					local_diff = std::fabs(std::get<0>(nodesOld_[i][j]) - std::get<0>(nodes_[i][j]));
 			}
 		diff = local_diff;
 	}
-	
+
 	void join(const TBB_Reductor& other)
 	{
 		diff = std::max(diff, other.diff);
@@ -158,15 +158,15 @@ uint64_t Nodes<T>::getItterCount(void) const
 template<typename T>
 void Nodes<T>::testBuffers(void) const
 {
-	for (uint64_t i = 0; i < this->_nodeY; ++i) {
-		for (uint64_t j = 0; j < this->_nodeX; ++j) {
-			cout << this->_nodes[i][j].first << ", ";
+	for (uint64_t i = 1; i < this->_nodeY - 1; ++i) {
+		for (uint64_t j = 1; j < this->_nodeX - 1; ++j) {
+			cout << std::get<0>(this->_nodes[i][j]) << ", ";
 		}
 		cout << endl;
 	}
-	for (uint64_t i = 0; i < this->_nodeY; ++i) {
-		for (uint64_t j = 0; j < this->_nodeX; ++j) {
-			cout << this->_nodesOld[i][j].first << ", ";
+	for (uint64_t i = 1; i < this->_nodeY - 1; ++i) {
+		for (uint64_t j = 1; j < this->_nodeX - 1; ++j) {
+			cout << std::get<0>(this->_nodesOld[i][j]) << ", ";
 		}
 		cout << endl;
 	}
@@ -176,8 +176,8 @@ template<typename T>
 Nodes<T>::Nodes(const uint64_t nodeX, const uint64_t nodeY,
 		const T initial_temp)
 {
-	this->_nodeX = nodeX;
-	this->_nodeY = nodeY;
+	this->_nodeX = nodeX + 2;
+	this->_nodeY = nodeY + 2;
 	this->initBuffer(initial_temp);
 	this->_hasHeatSource = false;
 	this->_hasCalculated = false;
@@ -189,15 +189,44 @@ void Nodes<T>::initBuffer(const T initial_temp)
 {
 	this->_nodes.reserve(this->_nodeY);
 	this->_nodesOld.reserve(this->_nodeY);
-	for (uint64_t i = 0; i < this->_nodeY; ++i) {
-		std::vector<std::pair<T, bool>> tmp;
+
+	std::vector<std::tuple<T, bool, int>> tmp;
+	tmp.reserve(this->_nodeX);
+
+	for (uint64_t j = 0; j < this->_nodeX; ++j) {
+		tmp.push_back(make_tuple(0, false, 0));
+	}
+
+	this->_nodes.push_back(tmp);
+	this->_nodesOld.push_back(std::move(tmp));
+
+	for (uint64_t i = 0; i < this->_nodeY - 2; ++i) {
+		std::vector<std::tuple<T, bool, int>> tmp;
 		tmp.reserve(this->_nodeX);
-		for (uint64_t j = 0; j < this->_nodeX; ++j) {
-			tmp.push_back(make_pair(initial_temp, false));
+
+		tmp.push_back(make_tuple(0, false, 0));
+		for (uint64_t j = 0; j < this->_nodeX - 2; ++j) {
+			tmp.push_back(make_tuple(initial_temp, false,
+						 4 -
+						 (i == 0 || i == this->_nodeX - 3) -
+						 (j == 0 || j == this->_nodeY - 3)));
 		}
+		tmp.push_back(make_tuple(0, false, 0));
+
 		this->_nodes.push_back(tmp);
 		this->_nodesOld.push_back(std::move(tmp));
 	}
+
+	std::vector<std::tuple<T, bool, int>> tmp2;
+	tmp2.reserve(this->_nodeX);
+
+	for (uint64_t j = 0; j < this->_nodeX; ++j) {
+		tmp2.push_back(make_tuple(0, false, 0));
+	}
+
+	this->_nodes.push_back(tmp2);
+	this->_nodesOld.push_back(std::move(tmp2));
+
 	for (uint64_t i = 0; i < this->_nodeY; i++) {
 		this->_nodes[i].shrink_to_fit();
 		this->_nodesOld[i].shrink_to_fit();
@@ -209,13 +238,13 @@ void Nodes<T>::initBuffer(const T initial_temp)
 template<typename T>
 void Nodes<T>::setWallSources(const T& northTemp, const T& eastTemp, const T& southTemp, const T& westTemp)
 {
-	for (uint64_t i = 0; i < this->_nodeY; ++i) {
+	for (uint64_t i = 0; i < this->_nodeY - 2; ++i) {
 		setHeatSource(0, i, westTemp);
-		setHeatSource(this->_nodeX - 1, i, eastTemp);
+		setHeatSource(this->_nodeX - 3, i, eastTemp);
 	}
-	for (uint64_t i = 0; i < this->_nodeX; ++i) {
+	for (uint64_t i = 1; i < this->_nodeX - 2; ++i) {
 		setHeatSource(i, 0, northTemp);
-		setHeatSource(i, this->_nodeY - 1, southTemp);
+		setHeatSource(i, this->_nodeY - 3, southTemp);
 	}
 }
 
@@ -223,14 +252,14 @@ template<typename T>
 void Nodes<T>::setHeatSource(const uint64_t& posX, const uint64_t& posY, const T& temp)
 {
 	this->_hasHeatSource = true;
-	this->_nodes[posY][posX].first = temp;
-	this->_nodes[posY][posX].second = true;
+	std::get<0>(this->_nodes[posY + 1][posX + 1]) = temp;
+	std::get<1>(this->_nodes[posY + 1][posX + 1]) = true;
 }
 
 template <typename T>
 void Nodes<T>::setTemperature(const uint64_t posX, const uint64_t posY, const T temp)
 {
-	this->_nodes[posY][posX].first = temp;
+	std::get<0>(this->_nodes[posY + 1][posX + 1]) = temp;
 }
 
 template<typename T>
@@ -271,22 +300,20 @@ void Nodes<T>::calculateWoutThread(const prec_t epsilon)
 			for (uint64_t j = 0; j < this->_nodeX; ++j)
 				this->_nodesOld[i][j] = this->_nodes[i][j];
 
-		calculateOuterNodes();
-
 		prec_t diff = 0.0f;
 
 		// Every non-border node
 		for (uint64_t i = 1; i < this->_nodeY - 1; ++i) {
 			for (uint64_t j = 1; j < this->_nodeX - 1; ++j) {
-				if (this->_nodes[i][j].second != true) {
-					this->_nodes[i][j].first =
-						(this->_nodesOld[i - 1][j].first +
-						 this->_nodesOld[i + 1][j].first +
-						 this->_nodesOld[i][j - 1].first +
-						 this->_nodesOld[i][j + 1].first)
-						/ 4;
-					if (diff < std::fabs(this->_nodesOld[i][j].first - this->_nodes[i][j].first)) {
-						diff = std::fabs(this->_nodesOld[i][j].first - this->_nodes[i][j].first);
+				if (std::get<1>(this->_nodes[i][j]) != true) {
+					std::get<0>(this->_nodes[i][j]) =
+						(std::get<0>(this->_nodesOld[i - 1][j]) +
+						 std::get<0>(this->_nodesOld[i + 1][j]) +
+						 std::get<0>(this->_nodesOld[i][j - 1]) +
+						 std::get<0>(this->_nodesOld[i][j + 1])) /
+						std::get<2>(this->_nodes[i][j]);
+					if (diff < std::fabs(std::get<0>(this->_nodesOld[i][j]) - std::get<0>(this->_nodes[i][j]))) {
+						diff = std::fabs(std::get<0>(this->_nodesOld[i][j]) - std::get<0>(this->_nodes[i][j]));
 					}
 				}
 			}
@@ -298,89 +325,14 @@ void Nodes<T>::calculateWoutThread(const prec_t epsilon)
 }
 
 template <typename T>
-void Nodes<T>::calculateOuterNodes(void)
-{
-	// Corner nodes
-	if (!this->_nodes[0][0].second)
-	{
-		this->_nodes[0][0].first =
-			(this->_nodesOld[0][1].first +
-			 this->_nodesOld[1][0].first)
-			/ 2;
-	}
-	if (!this->_nodes[0][this->_nodeX - 1].second)
-	{
-		this->_nodes[0][this->_nodeX - 1].first =
-			(this->_nodesOld[0][this->_nodeX - 2].first +
-			 this->_nodesOld[1][this->_nodeX - 1].first)
-			/ 2;
-	}
-	if (!this->_nodes[this->_nodeY - 1][0].second)
-	{
-		this->_nodes[this->_nodeY - 1][0].first =
-			(this->_nodesOld[this->_nodeY - 1][1].first +
-			 this->_nodesOld[this->_nodeY - 2][0].first)
-			/ 2;
-	}
-	if (!this->_nodes[this->_nodeY - 1][this->_nodeX - 1].second)
-	{
-		this->_nodes[this->_nodeY - 1][this->_nodeX - 1].first =
-			(this->_nodesOld[this->_nodeY - 1][this->_nodeX - 2].first +
-			 this->_nodesOld[this->_nodeY - 2][this->_nodeX - 1].first)
-			/ 2;
-	}
-
-	// Border nodes
-	for (uint64_t i = 1; i < this->_nodeY - 1; ++i)
-	{
-		if (!this->_nodes[i][0].second)
-		{
-			this->_nodes[i][0].first =
-				(this->_nodesOld[i][1].first +
-				 this->_nodesOld[i - 1][0].first +
-				 this->_nodesOld[i + 1][0].first)
-				/ 3;
-		}
-		if (!this->_nodes[i][this->_nodeX - 1].second)
-		{
-			this->_nodes[i][this->_nodeX - 1].first =
-				(this->_nodesOld[i][this->_nodeX - 2].first +
-				 this->_nodesOld[i - 1][this->_nodeX - 1].first +
-				 this->_nodesOld[i + 1][this->_nodeX - 1].first)
-				/ 3;
-		}
-	}
-	for (uint64_t j = 1; j < this->_nodeX - 1; ++j)
-	{
-		if (!this->_nodes[0][j].second)
-		{
-			this->_nodes[0][j].first =
-				(this->_nodesOld[1][j].first +
-				 this->_nodesOld[0][j - 1].first +
-				 this->_nodesOld[0][j + 1].first)
-				/ 3;
-		}
-		if (!this->_nodes[this->_nodeY - 1][j].second)
-		{
-			this->_nodes[this->_nodeY - 1][j].first =
-				(this->_nodesOld[this->_nodeY - 2][j].first +
-				 this->_nodesOld[this->_nodeY - 1][j - 1].first +
-				 this->_nodesOld[this->_nodeY - 1][j + 1].first)
-				/ 3;
-		}
-
-	}
-}
-
-template <typename T>
 void Nodes<T>::clear(const T temp)
 {
-	for (size_t i = 0; i < this->_nodeX; ++i)
+	for (size_t i = 1; i < this->_nodeX - 1; ++i)
 	{
-		for (size_t j = 0; j < this->_nodeY; ++j)
+		for (size_t j = 1; j < this->_nodeY - 1; ++j)
 		{
-			this->nodes_[i][j].first = temp;
-			this->nodes_[i][j].second = false;
+			std::get<0>(this->nodes_[i][j]) = temp;
+			std::get<1>(this->nodes_[i][j]) = false;
 		}
 	}
 
@@ -396,9 +348,6 @@ void Nodes<T>::calculateWThread(const prec_t epsilon)
 	for (uint64_t i = 0; i < this->_nodeY; ++i)
 		for (uint64_t j = 0; j < this->_nodeX; ++j)
 			this->_nodesOld[i][j] = this->_nodes[i][j];
-
-	// Parallelising the computation of outer nodes is not profitable.
-	calculateOuterNodes();
 
 	TBB_Calculator<decltype(this->_nodes.begin())>
 		calculator(this->_nodes.begin(), this->_nodesOld.begin());
@@ -423,7 +372,7 @@ template<typename T>
 T Nodes<T>::getTemp(const uint64_t& posX, const uint64_t& posY) const
 {
 	if (this->_hasCalculated)
-		return this->_nodes[posY][posX].first;
+		return std::get<0>(this->_nodes[posY + 1][posX + 1]);
 	else {
 		//!TODO implement error handling or error throw mechanism
 		return 0;
@@ -433,9 +382,9 @@ T Nodes<T>::getTemp(const uint64_t& posX, const uint64_t& posY) const
 template<typename T>
 std::ostream& operator<<(std::ostream& os, const Nodes<T>& obj)
 {
-	for (const auto& i : obj._nodes) {
-		for (const auto& node : i)
-			os << node.first << " ";
+	for (auto i = obj._nodes.begin() + 1; i != obj._nodes.end() - 1; ++i) {
+		for (auto j = i->begin() + 1; j != i->end() - 1; ++j)
+			os << std::get<0>(*j) << " ";
 		os << endl;
 	}
 	return os;
