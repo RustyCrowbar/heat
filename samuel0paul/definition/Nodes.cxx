@@ -47,27 +47,90 @@ using prec_t = long double;
 namespace HMT
 {
 
+/* Functor given to TBB to calculate a new iteration for all inner nodes.
+ * This CANNOT check against an epsilon if it should stop
+ * afterwards, because the parallel_for functor must be const.
+ */
 template <typename T>
 class TBB_Calculator
 {
 public:
 	TBB_Calculator(T nextNodes, T oldNodes)
-		: nodes{nextNodes}
-		, diff{0}
+		: nodes_{nextNodes}
 		, nodesOld_{oldNodes}
 	{}
 
-	void operator()(const tbb::blocked_range<size_t>& range) const
+	void operator()(const tbb::blocked_range2d<size_t>& range) const
 	{
-		// TODO
-		std::cout << "Operating on range of size " << range.size() << std::endl;
+		uint64_t row_begin = range.rows().begin();
+		uint64_t row_end = range.rows().end();
+		uint64_t col_begin = range.cols().begin();
+		uint64_t col_end = range.cols().end();
+
+		for (uint64_t i = row_begin; i < row_end; ++i) {
+			for (uint64_t j = col_begin; j < col_end; ++j) {
+				if (!nodes_[i][j].second) {
+					nodes_[i][j].first =
+						(nodesOld_[i - 1][j].first +
+						 nodesOld_[i + 1][j].first +
+						 nodesOld_[i][j - 1].first +
+						 nodesOld_[i][j + 1].first)
+						/ 4;
+				}
+			}
+		}
 	}
 
 public:
-	T nodes;
-	prec_t diff;
-private:
+	T nodes_;
 	T nodesOld_; 
+};
+
+/* Functor given to TBB to find the largest value difference between
+ * the previous iteration and the current one. */
+template <typename T>
+class TBB_Reductor
+{
+public:
+	TBB_Reductor(T curNodes, T oldNodes)
+		: diff{0}
+		, nodes_{curNodes}
+		, nodesOld_{oldNodes}
+	{}
+
+	TBB_Reductor(TBB_Reductor& other, tbb::split)
+		: diff(other.diff)
+		, nodes_{other.nodes_}
+		, nodesOld_{other.nodesOld_}
+	{}
+
+	void operator()(const tbb::blocked_range2d<size_t>& range)
+	{
+		uint64_t row_begin = range.rows().begin();
+		uint64_t row_end = range.rows().end();
+		uint64_t col_begin = range.cols().begin();
+		uint64_t col_end = range.cols().end();
+		prec_t local_diff = diff;
+
+		for (uint64_t i = row_begin; i < row_end; ++i)
+			for (uint64_t j = col_begin; j < col_end; ++j) {
+				if (local_diff < std::fabs(nodesOld_[i][j].first - nodes_[i][j].first))
+					local_diff = std::fabs(nodesOld_[i][j].first - nodes_[i][j].first);
+			}
+		diff = local_diff;
+	}
+	
+	void join(const TBB_Reductor& other)
+	{
+		diff = std::max(diff, other.diff);
+	}
+
+public:
+	prec_t diff;
+
+private:
+	T nodes_;
+	T nodesOld_;
 };
 
 template<typename T>
@@ -323,13 +386,37 @@ void Nodes<T>::clear(const T temp)
 template<typename T>
 void Nodes<T>::calculateWThread(const prec_t epsilon)
 {
+	this->_startTime = std::chrono::high_resolution_clock::now();
+	++(this->_itterCnt);
+	for (uint64_t i = 0; i < this->_nodeY; ++i)
+		for (uint64_t j = 0; j < this->_nodeX; ++j)
+			this->_nodesOld[i][j] = this->_nodes[i][j];
+
 	TBB_Calculator<decltype(this->_nodes.begin())>
-		functor(this->_nodes.begin(), this->_nodesOld.begin());
+		calculator(this->_nodes.begin(), this->_nodesOld.begin());
+	TBB_Reductor<decltype(this->_nodes.begin())>
+		reductor(this->_nodes.begin(), this->_nodesOld.begin());
 
-	tbb::parallel_for(tbb::blocked_range<size_t>(0, this->_nodeX * this->_nodeY), functor);
+	/* dbg
+	for (auto i = 1; i < _nodeY - 1; ++i)
+		for (auto j = 1; j < _nodeX - 1; ++j)
+			if (_nodes[i][j].first != _nodesOld[i][j].first)
+				std::cout << "WTF" << std::endl;
+	*/
+	// Compute a new iteration
+	tbb::parallel_for(tbb::blocked_range2d<size_t>(1, this->_nodeY - 1,
+						       1, this->_nodeX - 1),
+			  calculator);
 
-	// Just for debugging, remove me
-	this->_hasCalculated = true;
+	// Find out if we should stop now
+	tbb::parallel_reduce(tbb::blocked_range2d<size_t>(1, this->_nodeY - 1,
+						          1, this->_nodeX - 1),
+			     reductor);
+	this->_endTime = std::chrono::high_resolution_clock::now();
+	// dbg
+	std::cout << "diff = " << reductor.diff << std::endl;
+	if (reductor.diff <= epsilon)
+		this->_hasCalculated = true;
 }
 
 template<typename T>
