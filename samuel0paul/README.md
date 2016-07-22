@@ -13,7 +13,20 @@ The above postulate stands true if the heat transfer is only through Conduction(
 
 ##Implementation
 
-_{ yet to come... }_
+Various ideas on how to better use Intel TBB:
+
+Using a different partitioner
+-----------------------------
+
+By default, the _automatic partitioner_ is used. We could set it to the
+_simple partitioner_ and manually tweak the limit. We could also try
+the _affinity partitioner_ but the same data are not being use more than
+a few times. *TODO*: Check the cache size on the Rpi 3's processor.
+
+Changing the grain size
+-----------------------
+
+And plot graphs to see what changed (with different problem sizes).
 
 ##LICENSE
 
