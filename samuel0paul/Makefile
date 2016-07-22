@@ -22,7 +22,7 @@ main: $(bindir) $(libdir) $(release_target)
 debug: CXX = ${CXX_AUX} -Wshadow -ggdb
 debug: $(bindir) $(libdir) $(debug_target)
 
-gif: $(release_target)
+gif: main
 	./$(release_target)
 	./tools/make_gif.bash
 
