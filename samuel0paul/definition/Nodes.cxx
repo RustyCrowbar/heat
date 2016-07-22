@@ -295,8 +295,6 @@ void Nodes<T>::calculateWoutThread(const prec_t epsilon)
 		if (diff <= epsilon)
 			this->_hasCalculated = true;
 	}
-	else
-		this->_itterCnt = 0; // Ugly as hell
 }
 
 template <typename T>
@@ -387,6 +385,7 @@ void Nodes<T>::clear(const T temp)
 	}
 
 	this->_hasCalculated = false;
+	this->_itterCnt = 0;
 }
 
 template<typename T>
