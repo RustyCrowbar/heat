@@ -4,7 +4,8 @@ MKDIR=mkdir -p
 objects = ./lib/Nodes.a ./lib/NodesHelper.a
 debug_objects = ./lib/debug_Nodes.a ./lib/debug_NodesHelper.a
 
-libs = -lboost_regex
+libs = -lboost_regex -ltbb_debug
+definitions = -DTBB_USE_ASSERT -DTBB_USE_PERFORMANCE_WARNINGS
 
 defdir = definition
 libdir = lib
@@ -26,10 +27,10 @@ gif: $(release_target)
 	./tools/make_gif.bash
 
 $(release_target): $(objects) main.cpp
-	${CXX} $(libs) $^ -o $@
+	${CXX} $(definitions) $(libs) $^ -o $@
 
 $(debug_target): $(debug_objects) main.cpp
-	${CXX} $(libs) $^ -o $@
+	${CXX} $(definitions) $(libs) $^ -o $@
 
 $(libdir)/debug_%.a $(libdir)/%.a: $(defdir)/%.cxx
 	${CXX} -c $^ -o $@
