@@ -33,6 +33,7 @@ SOFTWARE.
 #include <chrono>
 #include <thread>
 #include <mutex>
+#include <tbb/tbb.h>
 
 #include "../header/Nodes.h"
 
@@ -45,6 +46,29 @@ using prec_t = long double;
 
 namespace HMT
 {
+
+template <typename T>
+class TBB_Calculator
+{
+public:
+	TBB_Calculator(T nextNodes, T oldNodes)
+		: nodes{nextNodes}
+		, diff{0}
+		, nodesOld_{oldNodes}
+	{}
+
+	void operator()(const tbb::blocked_range<size_t>& range) const
+	{
+		// TODO
+		std::cout << "Operating on range of size " << range.size() << std::endl;
+	}
+
+public:
+	T nodes;
+	prec_t diff;
+private:
+	T nodesOld_; 
+};
 
 template<typename T>
 std::chrono::nanoseconds Nodes<T>::getDuration(void) const
@@ -164,8 +188,18 @@ bool Nodes<T>::hasCalculated(void) const
 	return this->_hasCalculated;
 }
 
-template<typename T>
+template <typename T>
 void Nodes<T>::calculate(const prec_t epsilon)
+{
+	// This is an ugly solution. Change it sometime.
+	if (this->_canUseThreads)
+		calculateWThread(epsilon);
+	else
+		calculateWoutThread(epsilon);
+}
+
+template<typename T>
+void Nodes<T>::calculateWoutThread(const prec_t epsilon)
 {
 	if (!this->_hasCalculated) {
 		this->_startTime = std::chrono::high_resolution_clock::now();
@@ -287,50 +321,15 @@ void Nodes<T>::clear(const T temp)
 }
 
 template<typename T>
-void Nodes<T>::calculateWThread(const prec_t& epsilon)
+void Nodes<T>::calculateWThread(const prec_t epsilon)
 {
-	unsigned int nofCore = std::thread::hardware_concurrency();
-	std::thread threads[nofCore];
-	auto calc = [&] (uint64_t nodeX, uint64_t nodeY, const prec_t epsilon) -> void {
-		std::mutex myMutex;
-		clog << "thread [id: " << std::this_thread::get_id() << "]" << endl;
-		prec_t diff = epsilon;
-		while (epsilon <= diff) {
-			++(this->_itterCnt);
-			for (uint64_t i = 0; i < nodeY; ++i)
-				for (uint64_t j = 0; j < nodeX; ++j) {
-					std::lock_guard<std::mutex> guard(myMutex);
-					this->_nodesOld[i][j] = this->_nodes[i][j];
-				}
+	TBB_Calculator<decltype(this->_nodes.begin())>
+		functor(this->_nodes.begin(), this->_nodesOld.begin());
 
-			diff = 0.0f;
-			for (uint64_t i = 1; i < nodeY - 1; ++i) {
-				for (uint64_t j = 1; j < nodeX - 1; ++j) {
-					std::lock_guard<std::mutex> guard(myMutex);
-					if (this->_nodes[i][j].second != true) {
-						this->_nodes[i][j].first = (this->_nodesOld[i - 1][j].first +
-													this->_nodesOld[i + 1][j].first +
-											 		this->_nodesOld[i][j - 1].first + 
-											 		this->_nodesOld[i][j + 1].first) / 4;
-						if (diff < std::fabs(this->_nodesOld[i][j].first - this->_nodes[i][j].first)) {
-							diff = std::fabs(this->_nodesOld[i][j].first - this->_nodes[i][j].first);
-						}
-					}
-				}
-			}
-		}
-	};
+	tbb::parallel_for(tbb::blocked_range<size_t>(0, this->_nodeX * this->_nodeY), functor);
 
-	clog << "main tread [id: " << std::this_thread::get_id() << "]" << endl; 
-	for (unsigned int i = 0; i < nofCore; ++i) {
-		if (this->_nodeY > this->_nodeX) {
-			threads[i] = std::thread(calc, this->_nodeX, (this->_nodeY / nofCore) * (i + 1), epsilon);
-		} else {
-			threads[i] = std::thread(calc, (this->_nodeX / nofCore) * (i + 1), this->_nodeY, epsilon);
-		}
-	}
-	for (unsigned int i = 0; i < nofCore; ++i)
-		threads[i].join();
+	// Just for debugging, remove me
+	this->_hasCalculated = true;
 }
 
 template<typename T>
