@@ -8,26 +8,29 @@
 **/
 
 #include <atomic>
+#include <boost/lexical_cast.hpp>
 #include <chrono>
 #include <cstdint>
 #include <cstdlib>
 #include <iomanip>
 #include <iostream>
 #include <fstream>
+#include <getopt.h>
 #include <thread>
+#include <unistd.h>
 
 #include "header/Nodes.h"
 #include "header/NodesHelper.h"
 
-#include "test/test.cpp"
-
-using std::cout;	using std::endl;
+using std::cout;
+using std::endl;
 using std::clog;
 using std::cin;
 using std::make_pair;
 
 using prec_t = long double;
 
+/*
 void runTest(void)
 {
 	test::NodesWithoutHeatSrc<prec_t> testNodesWOHSrcTE{12, 30,
@@ -50,26 +53,67 @@ void runTest(void)
 		heatSrcs};
 	testNodesWHSrcWTE.test();
 }
+*/
 
-int main(int argc, char const *argv[])
+static void print_info(uint64_t x_len, uint64_t y_len, prec_t epsilon,
+		       bool using_threads)
 {
 	cout << std::nounitbuf;
 	cout << std::setprecision(4) << std::fixed << std::boolalpha;
 	cout << "############################ HMT Assignment ##########################" << endl
 		 << " 2-D Steady State Conduction with and without Heat Generation" << endl << endl
 		 << " Author: Samuel Paul Vishesh [UR11ME145] <paulsamuelvishesh@live.com>" << endl
-		 << "######################################################################" << endl << endl;
+		 << "######################################################################" << endl
+		 << " Parallelized and enhanced by:" << endl
+		 << " Valentin Grimaldi, Mathieu Corre, Geoffrey Le Gourriérec" << endl
+		 << "######################################################################" << endl
+		 << endl; 
 
+	std::cout << "Computation model:" << endl
+		<< "\t" << y_len << " lines" << endl
+		<< "\t" << x_len << " columns" << endl
+		<< "\t" << "Precision: " << epsilon << endl
+		<< "\t" << "Using parallel version: " << using_threads << endl
+		<< endl;
+}
+
+int main(int argc, char *argv[])
+{
 	char filename[30] = { '\0' };
 	int iter = 0;
-	const uint64_t x_len = 12;
-	const uint64_t y_len = 12;
-	const prec_t epsilon = 1.0;
+	// Computation parameters and their default values
+	uint64_t x_len = 30;
+	uint64_t y_len = 30;
+	prec_t epsilon = 1.0;
+	bool using_threads = false;
 	unsigned long long ticks = 0;
+	int opt;
+
+	while ((opt = getopt(argc, argv, "w:h:e:p")) != -1)
+	{
+		switch (opt)
+		{
+		case 'w':
+			x_len = boost::lexical_cast<uint64_t>(optarg);
+			break;
+		case 'h':
+			y_len = boost::lexical_cast<uint64_t>(optarg);
+			break;
+		case 'e':
+			epsilon = boost::lexical_cast<prec_t>(optarg);
+			break;
+		case 'p':
+			using_threads = true;
+			break;
+		default:
+			printf("Usage: %s [-w width | -h height | -e epsilon | -p]\n", argv[0]);
+			return 1;
+		}
+	}
+	print_info(x_len, y_len, epsilon, using_threads);
 
 	HMT::Nodes<prec_t> nodes(x_len, y_len, 100.0);
-	nodes.setHeatSource(7, 9, 400.0);
-	nodes.canUseThreads(false);
+	nodes.canUseThreads(using_threads);
 	while (!nodes.hasCalculated())
 	{
 		nodes.calculate(epsilon);
