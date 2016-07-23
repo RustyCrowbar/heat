@@ -10,7 +10,6 @@
 #include <atomic>
 #include <boost/lexical_cast.hpp>
 #include <chrono>
-#include <cstdint>
 #include <cstdlib>
 #include <iomanip>
 #include <iostream>
@@ -19,6 +18,7 @@
 #include <thread>
 #include <unistd.h>
 
+#include "header/defs.h"
 #include "header/Nodes.h"
 #include "header/NodesHelper.h"
 
@@ -27,8 +27,6 @@ using std::endl;
 using std::clog;
 using std::cin;
 using std::make_pair;
-
-using prec_t = long double;
 
 /*
 void runTest(void)
@@ -55,7 +53,7 @@ void runTest(void)
 }
 */
 
-static void print_info(uint64_t x_len, uint64_t y_len, prec_t epsilon,
+static void print_info(dim_t x_len, dim_t y_len, prec_t epsilon,
 		       bool using_threads)
 {
 	cout << std::nounitbuf;
@@ -74,6 +72,7 @@ static void print_info(uint64_t x_len, uint64_t y_len, prec_t epsilon,
 		<< "\t" << x_len << " columns" << endl
 		<< "\t" << "Precision: " << epsilon << endl
 		<< "\t" << "Using parallel version: " << using_threads << endl
+		<< "#######" << endl
 		<< endl;
 }
 
@@ -82,8 +81,8 @@ int main(int argc, char *argv[])
 	char filename[30] = { '\0' };
 	int iter = 0;
 	// Computation parameters and their default values
-	uint64_t x_len = 30;
-	uint64_t y_len = 30;
+	dim_t x_len = 30;
+	dim_t y_len = 30;
 	prec_t epsilon = 1.0;
 	bool using_threads = false;
 	unsigned long long ticks = 0;
@@ -94,10 +93,10 @@ int main(int argc, char *argv[])
 		switch (opt)
 		{
 		case 'w':
-			x_len = boost::lexical_cast<uint64_t>(optarg);
+			x_len = boost::lexical_cast<dim_t>(optarg);
 			break;
 		case 'h':
-			y_len = boost::lexical_cast<uint64_t>(optarg);
+			y_len = boost::lexical_cast<dim_t>(optarg);
 			break;
 		case 'e':
 			epsilon = boost::lexical_cast<prec_t>(optarg);

@@ -36,13 +36,12 @@ SOFTWARE.
 #include <tbb/tbb.h>
 
 #include "../header/Nodes.h"
+#include "../header/defs.h"
 
 using std::cout;	using std::endl;
 using std::clog;
 using std::cin;
 using std::make_pair;
-
-using prec_t = long double;
 
 namespace HMT
 {
@@ -62,13 +61,13 @@ public:
 
 	void operator()(const tbb::blocked_range2d<size_t>& range) const
 	{
-		uint64_t row_begin = range.rows().begin();
-		uint64_t row_end = range.rows().end();
-		uint64_t col_begin = range.cols().begin();
-		uint64_t col_end = range.cols().end();
+		dim_t row_begin = range.rows().begin();
+		dim_t row_end = range.rows().end();
+		dim_t col_begin = range.cols().begin();
+		dim_t col_end = range.cols().end();
 
-		for (uint64_t i = row_begin; i < row_end; ++i) {
-			for (uint64_t j = col_begin; j < col_end; ++j) {
+		for (dim_t i = row_begin; i < row_end; ++i) {
+			for (dim_t j = col_begin; j < col_end; ++j) {
 				if (!nodes_[i][j].second) {
 					nodes_[i][j].first =
 						(nodesOld_[i - 1][j].first +
@@ -106,14 +105,14 @@ public:
 
 	void operator()(const tbb::blocked_range2d<size_t>& range)
 	{
-		uint64_t row_begin = range.rows().begin();
-		uint64_t row_end = range.rows().end();
-		uint64_t col_begin = range.cols().begin();
-		uint64_t col_end = range.cols().end();
+		dim_t row_begin = range.rows().begin();
+		dim_t row_end = range.rows().end();
+		dim_t col_begin = range.cols().begin();
+		dim_t col_end = range.cols().end();
 		prec_t local_diff = diff;
 
-		for (uint64_t i = row_begin; i < row_end; ++i)
-			for (uint64_t j = col_begin; j < col_end; ++j) {
+		for (dim_t i = row_begin; i < row_end; ++i)
+			for (dim_t j = col_begin; j < col_end; ++j) {
 				if (local_diff < std::fabs(nodesOld_[i][j].first - nodes_[i][j].first))
 					local_diff = std::fabs(nodesOld_[i][j].first - nodes_[i][j].first);
 			}
@@ -158,14 +157,14 @@ uint64_t Nodes<T>::getItterCount(void) const
 template<typename T>
 void Nodes<T>::testBuffers(void) const
 {
-	for (uint64_t i = 0; i < this->_nodeY; ++i) {
-		for (uint64_t j = 0; j < this->_nodeX; ++j) {
+	for (dim_t i = 0; i < this->_nodeY; ++i) {
+		for (dim_t j = 0; j < this->_nodeX; ++j) {
 			cout << this->_nodes[i][j].first << ", ";
 		}
 		cout << endl;
 	}
-	for (uint64_t i = 0; i < this->_nodeY; ++i) {
-		for (uint64_t j = 0; j < this->_nodeX; ++j) {
+	for (dim_t i = 0; i < this->_nodeY; ++i) {
+		for (dim_t j = 0; j < this->_nodeX; ++j) {
 			cout << this->_nodesOld[i][j].first << ", ";
 		}
 		cout << endl;
@@ -173,7 +172,7 @@ void Nodes<T>::testBuffers(void) const
 }
 
 template<typename T>
-Nodes<T>::Nodes(const uint64_t nodeX, const uint64_t nodeY,
+Nodes<T>::Nodes(const dim_t nodeX, const dim_t nodeY,
 		const T initial_temp)
 {
 	this->_nodeX = nodeX;
@@ -189,16 +188,16 @@ void Nodes<T>::initBuffer(const T initial_temp)
 {
 	this->_nodes.reserve(this->_nodeY);
 	this->_nodesOld.reserve(this->_nodeY);
-	for (uint64_t i = 0; i < this->_nodeY; ++i) {
+	for (dim_t i = 0; i < this->_nodeY; ++i) {
 		std::vector<std::pair<T, bool>> tmp;
 		tmp.reserve(this->_nodeX);
-		for (uint64_t j = 0; j < this->_nodeX; ++j) {
+		for (dim_t j = 0; j < this->_nodeX; ++j) {
 			tmp.push_back(make_pair(initial_temp, false));
 		}
 		this->_nodes.push_back(tmp);
 		this->_nodesOld.push_back(std::move(tmp));
 	}
-	for (uint64_t i = 0; i < this->_nodeY; i++) {
+	for (dim_t i = 0; i < this->_nodeY; i++) {
 		this->_nodes[i].shrink_to_fit();
 		this->_nodesOld[i].shrink_to_fit();
 	}
@@ -209,18 +208,18 @@ void Nodes<T>::initBuffer(const T initial_temp)
 template<typename T>
 void Nodes<T>::setWallSources(const T& northTemp, const T& eastTemp, const T& southTemp, const T& westTemp)
 {
-	for (uint64_t i = 0; i < this->_nodeY; ++i) {
+	for (dim_t i = 0; i < this->_nodeY; ++i) {
 		setHeatSource(0, i, westTemp);
 		setHeatSource(this->_nodeX - 1, i, eastTemp);
 	}
-	for (uint64_t i = 0; i < this->_nodeX; ++i) {
+	for (dim_t i = 0; i < this->_nodeX; ++i) {
 		setHeatSource(i, 0, northTemp);
 		setHeatSource(i, this->_nodeY - 1, southTemp);
 	}
 }
 
 template<typename T>
-void Nodes<T>::setHeatSource(const uint64_t& posX, const uint64_t& posY, const T& temp)
+void Nodes<T>::setHeatSource(const dim_t& posX, const dim_t& posY, const T& temp)
 {
 	this->_hasHeatSource = true;
 	this->_nodes[posY][posX].first = temp;
@@ -228,7 +227,7 @@ void Nodes<T>::setHeatSource(const uint64_t& posX, const uint64_t& posY, const T
 }
 
 template <typename T>
-void Nodes<T>::setTemperature(const uint64_t posX, const uint64_t posY, const T temp)
+void Nodes<T>::setTemperature(const dim_t posX, const dim_t posY, const T temp)
 {
 	this->_nodes[posY][posX].first = temp;
 }
@@ -267,8 +266,8 @@ void Nodes<T>::calculateWoutThread(const prec_t epsilon)
 	if (!this->_hasCalculated) {
 		this->_startTime = std::chrono::high_resolution_clock::now();
 		++(this->_itterCnt);
-		for (uint64_t i = 0; i < this->_nodeY; ++i)
-			for (uint64_t j = 0; j < this->_nodeX; ++j)
+		for (dim_t i = 0; i < this->_nodeY; ++i)
+			for (dim_t j = 0; j < this->_nodeX; ++j)
 				this->_nodesOld[i][j] = this->_nodes[i][j];
 
 		calculateOuterNodes();
@@ -276,8 +275,8 @@ void Nodes<T>::calculateWoutThread(const prec_t epsilon)
 		prec_t diff = 0.0f;
 
 		// Every non-border node
-		for (uint64_t i = 1; i < this->_nodeY - 1; ++i) {
-			for (uint64_t j = 1; j < this->_nodeX - 1; ++j) {
+		for (dim_t i = 1; i < this->_nodeY - 1; ++i) {
+			for (dim_t j = 1; j < this->_nodeX - 1; ++j) {
 				if (this->_nodes[i][j].second != true) {
 					this->_nodes[i][j].first =
 						(this->_nodesOld[i - 1][j].first +
@@ -331,7 +330,7 @@ void Nodes<T>::calculateOuterNodes(void)
 	}
 
 	// Border nodes
-	for (uint64_t i = 1; i < this->_nodeY - 1; ++i)
+	for (dim_t i = 1; i < this->_nodeY - 1; ++i)
 	{
 		if (!this->_nodes[i][0].second)
 		{
@@ -350,7 +349,7 @@ void Nodes<T>::calculateOuterNodes(void)
 				/ 3;
 		}
 	}
-	for (uint64_t j = 1; j < this->_nodeX - 1; ++j)
+	for (dim_t j = 1; j < this->_nodeX - 1; ++j)
 	{
 		if (!this->_nodes[0][j].second)
 		{
@@ -393,8 +392,8 @@ void Nodes<T>::calculateWThread(const prec_t epsilon)
 {
 	this->_startTime = std::chrono::high_resolution_clock::now();
 	++(this->_itterCnt);
-	for (uint64_t i = 0; i < this->_nodeY; ++i)
-		for (uint64_t j = 0; j < this->_nodeX; ++j)
+	for (dim_t i = 0; i < this->_nodeY; ++i)
+		for (dim_t j = 0; j < this->_nodeX; ++j)
 			this->_nodesOld[i][j] = this->_nodes[i][j];
 
 	// Parallelising the computation of outer nodes is not profitable.
@@ -417,10 +416,11 @@ void Nodes<T>::calculateWThread(const prec_t epsilon)
 	this->_endTime = std::chrono::high_resolution_clock::now();
 	if (reductor.diff <= epsilon)
 		this->_hasCalculated = true;
+
 }
 
 template<typename T>
-T Nodes<T>::getTemp(const uint64_t& posX, const uint64_t& posY) const
+T Nodes<T>::getTemp(const dim_t& posX, const dim_t& posY) const
 {
 	if (this->_hasCalculated)
 		return this->_nodes[posY][posX].first;

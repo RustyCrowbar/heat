@@ -1,8 +1,8 @@
 CXX_AUX = g++ -std=c++1y -Og -Wall -pthread -Wl,--no-as-needed
 MKDIR=mkdir -p
 
-objects = ./lib/Nodes.a ./lib/NodesHelper.a
-debug_objects = ./lib/debug_Nodes.a ./lib/debug_NodesHelper.a
+objects = ./lib/Nodes.a ./lib/NodesHelper.a ./lib/config_parse.a
+debug_objects = ./lib/debug_Nodes.a ./lib/debug_NodesHelper.a ./lib/config_parse.a
 
 libs = -lboost_regex -ltbb_debug
 definitions = -DTBB_USE_ASSERT -DTBB_USE_PERFORMANCE_WARNINGS
