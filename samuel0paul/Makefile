@@ -23,7 +23,8 @@ debug: CXX = ${CXX_AUX} -Wshadow -ggdb
 debug: $(bindir) $(libdir) $(debug_target)
 
 gif: main
-	./$(release_target)
+	${RM} temperature_*.txt
+	./$(release_target) -w 50 -h 50 -e 1 -p
 	@./tools/make_gif.bash
 
 $(release_target): $(objects) main.cpp
