@@ -206,15 +206,30 @@ void Nodes<T>::initBuffer(const T initial_temp)
 }
 
 template<typename T>
-void Nodes<T>::setWallSources(const T& northTemp, const T& eastTemp, const T& southTemp, const T& westTemp)
+void Nodes<T>::setWallSource(const enum Wall wall, const T& temp)
 {
-	for (dim_t i = 0; i < this->_nodeY; ++i) {
-		setHeatSource(0, i, westTemp);
-		setHeatSource(this->_nodeX - 1, i, eastTemp);
-	}
-	for (dim_t i = 0; i < this->_nodeX; ++i) {
-		setHeatSource(i, 0, northTemp);
-		setHeatSource(i, this->_nodeY - 1, southTemp);
+	switch (wall)
+	{
+	case NORTH:
+		for (dim_t i = 0; i < this->_nodeX; ++i)
+			setHeatSource(i, 0, temp);
+		break;
+
+	case EAST:
+		for (dim_t i = 0; i < this->_nodeY; ++i)
+			setHeatSource(this->_nodeX - 1, i, temp);
+		break;
+	case SOUTH:
+		for (dim_t i = 0; i < this->_nodeX; ++i)
+			setHeatSource(i, this->_nodeY - 1, temp);
+		break;
+	case WEST:
+		for (dim_t i = 0; i < this->_nodeY; ++i)
+			setHeatSource(0, i, temp);
+		break;
+	default:
+		std::cerr << "Error: unknown wall" << std::endl;
+		break;
 	}
 }
 

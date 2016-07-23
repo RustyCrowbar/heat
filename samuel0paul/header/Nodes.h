@@ -42,11 +42,19 @@ template<typename T>
 class Nodes
 {
 public:
+	enum Wall
+	{
+		NORTH,
+		EAST,
+		SOUTH,
+		WEST
+	};
+
 	Nodes() = default;
 	Nodes(const uint64_t nodeX, const uint64_t nodeY, const T initial_temp);
 	virtual ~Nodes() = default;
 
-	void setWallSources(const T& northTemp, const T& eastTemp, const T& southTemp, const T& westTemp);
+	void setWallSource(const enum Wall wall, const T& temp);
 	void setHeatSource(const uint64_t& posX, const uint64_t& posY, const T& temp);
 	void setTemperature(const uint64_t posX, const uint64_t posY, const T temp);
 	void canUseThreads(const bool choice) noexcept(true);

@@ -75,6 +75,22 @@ static void print_info(dim_t x_len, dim_t y_len, prec_t epsilon,
 		<< "\t" << "Using parallel version: " << using_threads << endl;
 }
 
+static void apply_config(HMT::Nodes<prec_t>& nodes, struct Config& config)
+{
+	if (config.north_source)
+		nodes.setWallSource(HMT::Nodes<prec_t>::NORTH, config.north_temp);
+	if (config.east_source)
+		nodes.setWallSource(HMT::Nodes<prec_t>::EAST, config.east_temp);
+	if (config.south_source)
+		nodes.setWallSource(HMT::Nodes<prec_t>::SOUTH, config.south_temp);
+	if (config.west_source)
+		nodes.setWallSource(HMT::Nodes<prec_t>::WEST, config.west_temp);
+
+	for (auto& point : config.point_sources)
+		nodes.setHeatSource(std::get<0>(point), std::get<1>(point),
+				    std::get<2>(point));
+}
+
 int main(int argc, char *argv[])
 {
 	char filename[30] = { '\0' };
@@ -116,8 +132,9 @@ int main(int argc, char *argv[])
 	print_config(conf);
 	std::cout << "######" << std::endl << std::endl;
 
-	HMT::Nodes<prec_t> nodes(x_len, y_len, 100.0);
+	HMT::Nodes<prec_t> nodes(x_len, y_len, conf.initial_temp);
 	nodes.canUseThreads(using_threads);
+	apply_config(nodes, conf);
 	while (!nodes.hasCalculated())
 	{
 		nodes.calculate(epsilon);

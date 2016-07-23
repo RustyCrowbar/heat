@@ -15,15 +15,15 @@
 struct Config
 {
 	Config()
-		: initial_temp{static_cast<prec_t>(100)}
+		: initial_temp{static_cast<prec_t>(0)}
 		, north_source{false}
-		, north_temp{static_cast<prec_t>(100)}
-		, east_source{true}
-		, east_temp{static_cast<prec_t>(400)}
-		, south_source{true}
-		, south_temp{static_cast<prec_t>(250)}
+		, north_temp{static_cast<prec_t>(0)}
+		, east_source{false}
+		, east_temp{static_cast<prec_t>(0)}
+		, south_source{false}
+		, south_temp{static_cast<prec_t>(0)}
 		, west_source{false}
-		, west_temp{static_cast<prec_t>(100)}
+		, west_temp{static_cast<prec_t>(0)}
 	{}
 
 	prec_t initial_temp;
