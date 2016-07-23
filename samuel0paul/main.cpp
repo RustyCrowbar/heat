@@ -18,6 +18,7 @@
 #include <thread>
 #include <unistd.h>
 
+#include "header/config_parse.h"
 #include "header/defs.h"
 #include "header/Nodes.h"
 #include "header/NodesHelper.h"
@@ -71,9 +72,7 @@ static void print_info(dim_t x_len, dim_t y_len, prec_t epsilon,
 		<< "\t" << y_len << " lines" << endl
 		<< "\t" << x_len << " columns" << endl
 		<< "\t" << "Precision: " << epsilon << endl
-		<< "\t" << "Using parallel version: " << using_threads << endl
-		<< "#######" << endl
-		<< endl;
+		<< "\t" << "Using parallel version: " << using_threads << endl;
 }
 
 int main(int argc, char *argv[])
@@ -87,6 +86,7 @@ int main(int argc, char *argv[])
 	bool using_threads = false;
 	unsigned long long ticks = 0;
 	int opt;
+	struct Config conf;
 
 	while ((opt = getopt(argc, argv, "w:h:e:p")) != -1)
 	{
@@ -109,7 +109,12 @@ int main(int argc, char *argv[])
 			return 1;
 		}
 	}
+	if (!parse_config(conf, "heat.config"))
+		return 1;
+
 	print_info(x_len, y_len, epsilon, using_threads);
+	print_config(conf);
+	std::cout << "######" << std::endl << std::endl;
 
 	HMT::Nodes<prec_t> nodes(x_len, y_len, 100.0);
 	nodes.canUseThreads(using_threads);
