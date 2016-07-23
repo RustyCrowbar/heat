@@ -41,8 +41,7 @@ Various ideas on how to better use Intel TBB:
 By default, the _automatic partitioner_ is used. We could set it to the
 _simple partitioner_ and manually tweak the limit. We could also try
 the _affinity partitioner_ but the same data are not being use more than
-a few times. Unfortunately, the cache size on the Rpi 3's processor is
-unknown.
+a few times. The Rpi 3's processor got a 512KB L2 cache.
 
 ### Changing the grain size
 
