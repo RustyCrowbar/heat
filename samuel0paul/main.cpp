@@ -29,30 +29,6 @@ using std::clog;
 using std::cin;
 using std::make_pair;
 
-/*
-void runTest(void)
-{
-	test::NodesWithoutHeatSrc<prec_t> testNodesWOHSrcTE{12, 30,
-		500.0f, 100.0f, 100.0f, 100.0f, 0.0000001f, true};
-	testNodesWOHSrcTE.test();
-	test::NodesWithoutHeatSrc<prec_t> testNodesWOHSrcWTE{12, 30,
-		500.0f, 100.0f, 100.0f, 100.0f, 0.0000001f, false};
-	testNodesWOHSrcWTE.test();
-
-	std::vector<std::pair<std::pair<uint64_t, uint64_t>, prec_t>> heatSrcs = {
-		make_pair(make_pair(2, 2), 300.0f),
-		make_pair(make_pair(5, 5), -1000.0f)
-	};
-	test::NodesWithHeatSrc<prec_t> testNodesWHSrcTE{12, 30,
-		500.0f, 100.0f, 100.0f, 100.0f, 0.0000001f, false,
-		heatSrcs};
-	testNodesWHSrcTE.test();
-	test::NodesWithHeatSrc<prec_t> testNodesWHSrcWTE{12, 30,
-		500.0f, 100.0f, 100.0f, 100.0f, 0.0000001f, true,
-		heatSrcs};
-	testNodesWHSrcWTE.test();
-}
-*/
 
 static void print_info(dim_t x_len, dim_t y_len, prec_t epsilon,
 		       bool using_threads)
@@ -175,7 +151,5 @@ int main(int argc, char *argv[])
 	cout << "Time taken: " << ticks << "ns" << endl;
 	cout << "Iterations: " << iter << endl;
 
-	//runTest();
-	
 	return 0;
 }
