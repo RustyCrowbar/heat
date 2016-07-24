@@ -104,14 +104,14 @@ int main(int argc, char *argv[])
 	int opt;
 	struct Config conf;
 
-	while ((opt = getopt(argc, argv, "w:h:e:p")) != -1)
+	while ((opt = getopt(argc, argv, "x:y:e:ph")) != -1)
 	{
 		switch (opt)
 		{
-		case 'w':
+		case 'x':
 			x_len = boost::lexical_cast<dim_t>(optarg);
 			break;
-		case 'h':
+		case 'y':
 			y_len = boost::lexical_cast<dim_t>(optarg);
 			break;
 		case 'e':
@@ -120,6 +120,14 @@ int main(int argc, char *argv[])
 		case 'p':
 			using_threads = true;
 			break;
+		case 'h':
+			printf("Usage: %s [-x width | -y height | -e epsilon | -p]\n", argv[0]);
+			printf("\t-x width  : set number of columns\n");
+			printf("\t-y height : set number of lines\n");
+			printf("\t-e epsilon: set precision\n");
+			printf("\t-p        : use parallel version\n");
+			printf("\t-h        : show this help\n");
+			return 0;
 		default:
 			printf("Usage: %s [-w width | -h height | -e epsilon | -p]\n", argv[0]);
 			return 1;
