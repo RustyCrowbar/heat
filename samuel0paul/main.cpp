@@ -75,6 +75,14 @@ static void print_info(dim_t x_len, dim_t y_len, prec_t epsilon,
 		<< "\t" << "Using parallel version: " << using_threads << endl;
 }
 
+static bool check_config(struct Config& config, dim_t x_len, dim_t y_len)
+{
+	for (auto& point : config.point_sources)
+		if (std::get<0>(point) >= x_len || std::get<1>(point) >= y_len)
+			return false;
+	return true;
+}
+
 static void apply_config(HMT::Nodes<prec_t>& nodes, struct Config& config)
 {
 	if (config.north_source)
@@ -135,6 +143,15 @@ int main(int argc, char *argv[])
 	}
 	if (!parse_config(conf, "heat.config"))
 		return 1;
+	if (!check_config(conf, x_len, y_len))
+	{
+		std::cerr << "Error: some heat sources are out of bounds."
+			<< std::endl
+			<< "(" << x_len << " columns, "
+			<< y_len << " lines)"
+			<< std::endl;
+		return 2;
+	}
 
 	print_info(x_len, y_len, epsilon, using_threads);
 	print_config(conf);
