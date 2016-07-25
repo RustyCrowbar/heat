@@ -53,6 +53,9 @@ static void print_info(dim_t x_len, dim_t y_len, prec_t epsilon,
 
 static bool check_config(struct Config& config, dim_t x_len, dim_t y_len)
 {
+	for (auto& point : config.point_initial_temps)
+		if (std::get<0>(point) >= x_len || std::get<1>(point) >= y_len)
+			return false;
 	for (auto& point : config.point_sources)
 		if (std::get<0>(point) >= x_len || std::get<1>(point) >= y_len)
 			return false;
@@ -61,6 +64,10 @@ static bool check_config(struct Config& config, dim_t x_len, dim_t y_len)
 
 static void apply_config(HMT::Nodes<prec_t>& nodes, struct Config& config)
 {
+	for (auto& point : config.point_initial_temps)
+		nodes.setTemperature(std::get<0>(point), std::get<1>(point),
+				     std::get<2>(point));
+
 	if (config.north_source)
 		nodes.setWallSource(HMT::Nodes<prec_t>::NORTH, config.north_temp);
 	if (config.east_source)

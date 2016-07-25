@@ -46,7 +46,7 @@ bool parse_config(struct Config& config, const char* filename)
 			confstr >> str;
 			config.west_temp = boost::lexical_cast<prec_t>(str);
 		}
-		else if (str.compare("point") == 0)
+		else if (str.compare("point_src") == 0)
 		{
 			// Punctual source
 			confstr >> str;
@@ -56,6 +56,18 @@ bool parse_config(struct Config& config, const char* filename)
 			confstr >> str;
 			prec_t temp = boost::lexical_cast<prec_t>(str);
 			config.point_sources.emplace_back(x, y, temp);
+		}
+		else if (str.compare("point") == 0)
+		{
+			// Punctual initial temperature
+			confstr >> str;
+			dim_t x = boost::lexical_cast<dim_t>(str);
+			confstr >> str;
+			dim_t y = boost::lexical_cast<dim_t>(str);
+			confstr >> str;
+			prec_t temp = boost::lexical_cast<prec_t>(str);
+			config.point_initial_temps.emplace_back(x, y, temp);
+
 		}
 		else if (str.compare("initial") == 0)
 		{
@@ -83,6 +95,14 @@ void print_config(const struct Config& config)
 
 	std::cout << "\tInitial temperature: " << config.initial_temp
 		<< std::endl;
+	std::cout << "\tIndividual initial temperatures:" << std::endl;
+	for (auto& point : config.point_initial_temps)
+	{
+		std::cout << "\t" << std::get<0>(point) << ", "
+			<< std::get<1>(point) << "\t"
+			<< std::get<2>(point)
+			<< std::endl;
+	}
 
 	std::cout << "\tNorth source: " << config.north_source;
 	if (config.north_source)

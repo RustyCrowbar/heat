@@ -10,7 +10,7 @@
  * to the chose format.
  *
  * Current format:
- * [ [north | east | south | west] value | initial value | point x y value ]
+ * [ [north | east | south | west] value | initial value | [point | point_src] x y value ]
  * */
 struct Config
 {
@@ -41,6 +41,7 @@ struct Config
 	prec_t west_temp;
 
 	std::vector<std::tuple<dim_t, dim_t, prec_t>> point_sources;
+	std::vector<std::tuple<dim_t, dim_t, prec_t>> point_initial_temps;
 };
 
 bool parse_config(struct Config& config, const char* filename);
