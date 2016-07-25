@@ -37,12 +37,16 @@ std::vector<std::string> get_devices() {
 
 int main() {
 	std::vector<std::string> devices = get_devices();
-	std::ofstream of("temps");
+	int tmp;
+	std::ofstream of;
 	while (1) {
+		of.open("temps", std::ios::trunc);
 		for (std::string s : devices) {
-			std::cout << "device: '" << s << "'; temperature: '" << get_temp(s) << "'" << std::endl;
-			of << get_temp(s) << std::endl;
+			tmp = get_temp(s);
+			std::cout << "device: '" << s << "'; temperature: '" << tmp << "'" << std::endl;
+			of << tmp << std::endl;
 		}
-		std::this_thread::sleep_for(std::chrono::minutes(1));
+		of.close();
+		std::this_thread::sleep_for(std::chrono::seconds(10));
 	}
 }
