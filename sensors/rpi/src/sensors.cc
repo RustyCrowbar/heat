@@ -1,5 +1,7 @@
 #include <iostream>
 #include <fstream>
+#include <thread>
+#include <chrono>
 #include <boost/filesystem.hpp>
 
 uint32_t get_temp(std::string device_path) {
@@ -19,7 +21,7 @@ bool is_suitable(std::string dir) {
 
 std::vector<std::string> get_devices() {
 	std::vector<std::string> res;
-	boost::filesystem::path p("../sensors/test");
+	boost::filesystem::path p("test");
 	//boost::filesystem::path p("/sys/bus/w1/devices");
 
 	boost::filesystem::directory_iterator end_itr;
@@ -35,6 +37,11 @@ std::vector<std::string> get_devices() {
 
 int main() {
 	std::vector<std::string> devices = get_devices();
-	for (std::string s : devices)
-		std::cout << "device: '" << s << "'; temperature: '" << get_temp(s) << "'" << std::endl;
+	std::ofstream of("temps");
+	while (1) {
+		for (std::string s : devices)
+		//	std::cout << "device: '" << s << "'; temperature: '" << get_temp(s) << "'" << std::endl;
+			of << get_temp(s) << std::endl;
+		std::this_thread::sleep_for(std::chrono::seconds(10));
+	}
 }
