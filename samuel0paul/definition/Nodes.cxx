@@ -54,9 +54,11 @@ template <typename T>
 class TBB_Calculator
 {
 public:
-	TBB_Calculator(T nextNodes, T oldNodes)
+	TBB_Calculator(T nextNodes, T oldNodes, dim_t x_len, dim_t y_len)
 		: nodes_{nextNodes}
 		, nodesOld_{oldNodes}
+		, x_len_{x_len}
+		, y_len_{y_len}
 	{}
 
 	void operator()(const tbb::blocked_range2d<size_t>& range) const
@@ -68,7 +70,68 @@ public:
 
 		for (dim_t i = row_begin; i < row_end; ++i) {
 			for (dim_t j = col_begin; j < col_end; ++j) {
-				if (!nodes_[i][j].second) {
+
+				// Ignore heat sources, they don't change
+				if (nodes_[i][j].second)
+					continue;
+
+				if (i == 0)
+				{
+					if (j == 0) // Upper-left corner
+						nodes_[i][j].first =
+							(nodesOld_[i][j + 1].first +
+							 nodesOld_[i + 1][j].first)
+							 / 2;
+					else if (j == (x_len_ - 1)) // Upper-right corner
+						nodes_[i][j].first =
+							(nodesOld_[i][j - 1].first +
+							 nodesOld_[i + 1][j].first)
+							 / 2;
+					else // North border
+						nodes_[i][j].first =
+							(nodesOld_[i + 1][j].first +
+							 nodesOld_[i][j - 1].first +
+							 nodesOld_[i][j + 1].first)
+							 / 3;
+
+				}
+				else if (i == (y_len_ - 1))
+				{
+					if (j == 0) // Lower-left corner
+						nodes_[i][j].first =
+							(nodesOld_[i][j + 1].first +
+							 nodesOld_[i - 1][j].first)
+							 / 2;
+					else if (j == (x_len_ - 1)) // Lower-right corner
+						nodes_[i][j].first =
+							(nodesOld_[i][j - 1].first +
+							 nodesOld_[i - 1][j].first)
+							 / 2;
+					else // South border
+						nodes_[i][j].first =
+							(nodesOld_[i - 1][j].first +
+							 nodesOld_[i][j - 1].first +
+							 nodesOld_[i][j + 1].first)
+							 / 3;
+				}
+				else if (j == 0) // West border
+				{
+					nodes_[i][j].first =
+						(nodesOld_[i][j + 1].first +
+						 nodesOld_[i - 1][j].first +
+						 nodesOld_[i + 1][j].first)
+						 / 3;
+				}
+				else if (j == (x_len_ - 1)) // East border
+				{
+					nodes_[i][j].first =
+						(nodesOld_[i][j - 1].first +
+						 nodesOld_[i - 1][j].first +
+						 nodesOld_[i + 1][j].first)
+						 / 3;
+				}
+				else //	Inner nodes
+				{
 					nodes_[i][j].first =
 						(nodesOld_[i - 1][j].first +
 						 nodesOld_[i + 1][j].first +
@@ -82,7 +145,9 @@ public:
 
 public:
 	T nodes_;
-	T nodesOld_; 
+	T nodesOld_;
+	dim_t x_len_;
+	dim_t y_len_;
 };
 
 /* Functor given to TBB to find the largest value difference between
@@ -411,17 +476,15 @@ void Nodes<T>::calculateWThread(const prec_t epsilon)
 		for (dim_t j = 0; j < this->_nodeX; ++j)
 			this->_nodesOld[i][j] = this->_nodes[i][j];
 
-	// Parallelising the computation of outer nodes is not profitable.
-	calculateOuterNodes();
-
 	TBB_Calculator<decltype(this->_nodes.begin())>
-		calculator(this->_nodes.begin(), this->_nodesOld.begin());
+		calculator(this->_nodes.begin(), this->_nodesOld.begin(),
+			   this->_nodeX, this->_nodeY);
 	TBB_Reductor<decltype(this->_nodes.begin())>
 		reductor(this->_nodes.begin(), this->_nodesOld.begin());
 
 	// Compute a new iteration
-	tbb::parallel_for(tbb::blocked_range2d<size_t>(1, this->_nodeY - 1,
-						       1, this->_nodeX - 1),
+	tbb::parallel_for(tbb::blocked_range2d<size_t>(0, this->_nodeY - 1,
+						       0, this->_nodeX - 1),
 			  calculator);
 
 	// Find out if we should stop now
