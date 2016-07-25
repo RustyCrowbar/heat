@@ -2,6 +2,7 @@
 *.dbgo
 *.swp
 heat*
+!heat.config
 sensors/sensors
 
 !*.cc
