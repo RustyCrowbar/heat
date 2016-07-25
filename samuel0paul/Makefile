@@ -4,8 +4,8 @@ MKDIR=mkdir -p
 objects = ./lib/Nodes.a ./lib/NodesHelper.a ./lib/config_parse.a
 debug_objects = ./lib/debug_Nodes.a ./lib/debug_NodesHelper.a ./lib/config_parse.a
 
-libs = -lboost_regex -ltbb_debug
-definitions = -DTBB_USE_ASSERT -DTBB_USE_PERFORMANCE_WARNINGS
+libs = -lboost_regex -ltbb#_debug
+#definitions = -DTBB_USE_ASSERT -DTBB_USE_PERFORMANCE_WARNINGS
 
 defdir = definition
 libdir = lib

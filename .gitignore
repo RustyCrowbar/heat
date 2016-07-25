@@ -3,7 +3,10 @@
 *.swp
 heat*
 !heat.config
-sensors/sensors
+sensors/rpi/sensors
+sensors/pc/sensors
+sensors/pc/temps
+sensors/rpi/temps
 
 !*.cc
 

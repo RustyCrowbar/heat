@@ -35,7 +35,6 @@ std::vector<std::string> get_devices() {
 
 int main() {
 	std::vector<std::string> devices = get_devices();
-	for (std::string s : devices) {
+	for (std::string s : devices)
 		std::cout << "device: '" << s << "'; temperature: '" << get_temp(s) << "'" << std::endl;
-	}
 }
