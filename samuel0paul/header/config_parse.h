@@ -5,9 +5,16 @@
 
 #include "defs.h"
 
+
+/* Indexes of differents pieces of information in the
+ * Config tuples representing points */
+#define POINT_X		0
+#define POINT_Y		1
+#define POINT_TEMP	2
+
 /* Configuration structure used in conjunction with
  * the configuration file. Please change this in accordance
- * to the chose format.
+ * with the chosen format.
  *
  * Current format:
  * [ [north | east | south | west] value | initial value | [point | point_src] x y value ]
