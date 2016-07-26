@@ -24,7 +24,7 @@ debug: $(bindir) $(libdir) $(debug_target)
 
 gif: main
 	${RM} temperature_*.txt
-	./$(release_target) -w 50 -h 50 -e 1 -p
+	./$(release_target) -x 50 -y 50 -e 1 -p
 	@./tools/make_gif.bash
 
 $(release_target): $(objects) main.cpp
