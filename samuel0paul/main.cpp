@@ -114,18 +114,44 @@ int main(int argc, char *argv[])
 		switch (opt)
 		{
 		case 'x':
-			x_len = boost::lexical_cast<dim_t>(optarg);
-			break;
+			try {
+				x_len = boost::lexical_cast<dim_t>(optarg);
+				break;
+			}
+			catch (boost::bad_lexical_cast& e) {
+				std::cerr << "Error: invalid argument to -x" << std::endl;
+				return 2;
+			}
 		case 'y':
-			y_len = boost::lexical_cast<dim_t>(optarg);
-			break;
+			try {
+				y_len = boost::lexical_cast<dim_t>(optarg);
+				break;
+			}
+			catch (boost::bad_lexical_cast& e) {
+				std::cerr << "Error: invalid argument to -y" << std::endl;
+				return 2;
+			}
 		case 'e':
-			epsilon = boost::lexical_cast<prec_t>(optarg);
-			break;
+			try {
+				epsilon = boost::lexical_cast<prec_t>(optarg);
+				break;
+			}
+			catch (boost::bad_lexical_cast& e) {
+				std::cerr << "Error: invalid argument to -e" << std::endl;
+				return 2;
+			}
 		case 'p':
 			using_threads = true;
 			if (optarg)
-				grain_size = boost::lexical_cast<size_t>(optarg);
+			{
+				try {
+					grain_size = boost::lexical_cast<size_t>(optarg);
+				}
+				catch (boost::bad_lexical_cast& e) {
+					std::cerr << "Error: invalid argument to -p" << std::endl;
+					return 2;
+				}
+			}
 			break;
 		case 'h':
 			print_usage(argv[0]);
@@ -134,6 +160,7 @@ int main(int argc, char *argv[])
 			printf("\t-e epsilon: set precision\n");
 			printf("\t-p[arg]   : use parallel version with granularity=arg (default:2)\n");
 			printf("\t-h        : show this help\n");
+			printf("\nReturns: 0 on success, 1 on usage error, 2 on invalid configuration.\n");
 			return 0;
 		default:
 			print_usage(argv[0]);
