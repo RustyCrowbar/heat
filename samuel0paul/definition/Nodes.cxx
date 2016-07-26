@@ -43,6 +43,10 @@ using std::clog;
 using std::cin;
 using std::make_pair;
 
+using namespace tbb::flow;
+typedef continue_node<continue_msg> node_t;
+typedef const continue_msg msg_t;
+
 namespace HMT
 {
 
@@ -174,13 +178,14 @@ void Nodes<T>::testBuffers(void) const
 template<typename T>
 Nodes<T>::Nodes(const dim_t nodeX, const dim_t nodeY,
 		const T initial_temp)
+	: _hasHeatSource{false}
+	, _hasCalculated{false}
+	, _canUseThreads{false}
+	, _nodeX{nodeX}
+	, _nodeY{nodeY}
+	, _itterCnt{0}
 {
-	this->_nodeX = nodeX;
-	this->_nodeY = nodeY;
 	this->initBuffer(initial_temp);
-	this->_hasHeatSource = false;
-	this->_hasCalculated = false;
-	this->_canUseThreads = false;
 }
 
 template<typename T>
@@ -407,13 +412,159 @@ void Nodes<T>::calculateWThread(const prec_t epsilon)
 {
 	this->_startTime = std::chrono::high_resolution_clock::now();
 	++(this->_itterCnt);
-	for (dim_t i = 0; i < this->_nodeY; ++i)
-		for (dim_t j = 0; j < this->_nodeX; ++j)
-			this->_nodesOld[i][j] = this->_nodes[i][j];
 
-	// Parallelising the computation of outer nodes is not profitable.
-	calculateOuterNodes();
+	size_t iter_cnt = 4;
+	tbb::task_group_context tbb_context;
+	graph graph(tbb_context);
 
+	node_t check_stop(graph, [&](msg_t&) {
+
+		if (! iter_cnt--)
+			tbb_context.cancel_group_execution();
+	});
+
+	// Node to copy last iteration nodes to "old" matrix
+	node_t copy_to_old(graph, [this](msg_t&) {
+
+		for (dim_t i = 0; i < this->_nodeY; ++i)
+			for (dim_t j = 0; j < this->_nodeX; ++j)
+				this->_nodesOld[i][j] = this->_nodes[i][j];
+	});
+
+	// Node to compute temperature on all inner nodes
+	node_t inner_nodes(graph, [this](msg_t&) {
+
+		tbb::parallel_for(tbb::blocked_range2d<size_t>(1, this->_nodeY - 1,
+							       1, this->_nodeX - 1),
+				  [this](const tbb::blocked_range2d<size_t>& r) {
+
+				  dim_t row_begin = r.rows().begin();
+				  dim_t row_end = r.rows().end();
+				  dim_t col_begin = r.cols().begin();
+				  dim_t col_end = r.cols().end();
+
+				  for (dim_t i = row_begin; i < row_end; ++i) {
+					for (dim_t j = col_begin; j < col_end; ++j) {
+						if (!_nodes[i][j].second) {
+							_nodes[i][j].first =
+								(_nodesOld[i - 1][j].first +
+								 _nodesOld[i + 1][j].first +
+								 _nodesOld[i][j - 1].first +
+								 _nodesOld[i][j + 1].first)
+								 / 4;
+						}
+					}
+				  }
+		});
+	});
+
+	// Node to compute temperature on all outer nodes
+	node_t outer_nodes(graph, [this](msg_t&) {
+
+		// Corner nodes
+		if (!this->_nodes[0][0].second)
+		{
+			this->_nodes[0][0].first =
+				(this->_nodesOld[0][1].first +
+				 this->_nodesOld[1][0].first)
+				/ 2;
+		}
+		if (!this->_nodes[0][this->_nodeX - 1].second)
+		{
+			this->_nodes[0][this->_nodeX - 1].first =
+				(this->_nodesOld[0][this->_nodeX - 2].first +
+				 this->_nodesOld[1][this->_nodeX - 1].first)
+				/ 2;
+		}
+		if (!this->_nodes[this->_nodeY - 1][0].second)
+		{
+			this->_nodes[this->_nodeY - 1][0].first =
+				(this->_nodesOld[this->_nodeY - 1][1].first +
+				 this->_nodesOld[this->_nodeY - 2][0].first)
+				/ 2;
+		}
+		if (!this->_nodes[this->_nodeY - 1][this->_nodeX - 1].second)
+		{
+			this->_nodes[this->_nodeY - 1][this->_nodeX - 1].first =
+				(this->_nodesOld[this->_nodeY - 1][this->_nodeX - 2].first +
+				 this->_nodesOld[this->_nodeY - 2][this->_nodeX - 1].first)
+				/ 2;
+		}
+
+		// Border nodes
+		for (dim_t i = 1; i < this->_nodeY - 1; ++i)
+		{
+			if (!this->_nodes[i][0].second)
+			{
+				this->_nodes[i][0].first =
+					(this->_nodesOld[i][1].first +
+					 this->_nodesOld[i - 1][0].first +
+					 this->_nodesOld[i + 1][0].first)
+					/ 3;
+			}
+			if (!this->_nodes[i][this->_nodeX - 1].second)
+			{
+				this->_nodes[i][this->_nodeX - 1].first =
+					(this->_nodesOld[i][this->_nodeX - 2].first +
+					 this->_nodesOld[i - 1][this->_nodeX - 1].first +
+					 this->_nodesOld[i + 1][this->_nodeX - 1].first)
+					/ 3;
+			}
+		}
+		for (dim_t j = 1; j < this->_nodeX - 1; ++j)
+		{
+			if (!this->_nodes[0][j].second)
+			{
+				this->_nodes[0][j].first =
+					(this->_nodesOld[1][j].first +
+					 this->_nodesOld[0][j - 1].first +
+					 this->_nodesOld[0][j + 1].first)
+					/ 3;
+			}
+			if (!this->_nodes[this->_nodeY - 1][j].second)
+			{
+				this->_nodes[this->_nodeY - 1][j].first =
+					(this->_nodesOld[this->_nodeY - 2][j].first +
+					 this->_nodesOld[this->_nodeY - 1][j - 1].first +
+					 this->_nodesOld[this->_nodeY - 1][j + 1].first)
+					/ 3;
+			}
+
+		}
+	});
+
+	// Node to find if we reached required precision level
+	node_t check_precision(graph, [this](msg_t&) {
+
+		// This is ugly, but I can't manage another solution, sorry.
+		TBB_Reductor<decltype(this->_nodes.begin())>
+			reductor(this->_nodes.begin(), this->_nodesOld.begin());
+
+		tbb::parallel_reduce(tbb::blocked_range2d<size_t>(1, this->_nodeY - 1,
+								  1, this->_nodeX - 1),
+				     reductor);
+		this->diff_ = reductor.diff;
+	});
+
+	/* Link all nodes together. check_stop and check_precision are
+	 * differentiated because if we hold a tbb::task_group_context in
+	 * the class, we cannot restart the graph. And we can only capture
+	 * the "this" pointer in check_precision. */
+	make_edge(check_stop, copy_to_old);
+	make_edge(copy_to_old, inner_nodes);
+	make_edge(copy_to_old, outer_nodes);
+	make_edge(inner_nodes, check_precision);
+	make_edge(outer_nodes, check_precision);
+	make_edge(check_precision, check_stop);
+
+	check_stop.try_put(continue_msg());
+	graph.wait_for_all();
+
+	this->_endTime = std::chrono::high_resolution_clock::now();
+	if (this->diff_ <= epsilon)
+		this->_hasCalculated = true;
+
+	/*
 	TBB_Calculator<decltype(this->_nodes.begin())>
 		calculator(this->_nodes.begin(), this->_nodesOld.begin());
 	TBB_Reductor<decltype(this->_nodes.begin())>
@@ -431,7 +582,7 @@ void Nodes<T>::calculateWThread(const prec_t epsilon)
 	this->_endTime = std::chrono::high_resolution_clock::now();
 	if (reductor.diff <= epsilon)
 		this->_hasCalculated = true;
-
+	*/
 }
 
 template<typename T>

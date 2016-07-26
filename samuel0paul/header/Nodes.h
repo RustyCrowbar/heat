@@ -31,9 +31,11 @@ SOFTWARE.
 #include <cstdlib>
 #include <cstdint>
 #include <chrono>
+#include <tbb/tbb.h>
 #include <thread>
 
-using prec_t = long double;
+#include "defs.h"
+
 
 namespace HMT
 {
@@ -82,6 +84,8 @@ private:
 	uint64_t _nodeX, _nodeY, _itterCnt;
 	std::vector<std::vector<std::pair<T, bool>>> _nodes, _nodesOld;
 	std::chrono::time_point<std::chrono::high_resolution_clock> _startTime, _endTime;
+
+	prec_t diff_;
 };
 
 template<typename T1> std::ostream& operator<<(std::ostream&, const Nodes<T1>&);
