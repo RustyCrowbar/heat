@@ -31,9 +31,11 @@ SOFTWARE.
 #include <cstdlib>
 #include <cstdint>
 #include <chrono>
+#include <tbb/tbb.h>
 #include <thread>
 
-using prec_t = long double;
+#include "defs.h"
+
 
 namespace HMT
 {
@@ -42,11 +44,20 @@ template<typename T>
 class Nodes
 {
 public:
+	enum Wall
+	{
+		NORTH,
+		EAST,
+		SOUTH,
+		WEST
+	};
+
 	Nodes() = default;
-	Nodes(const uint64_t nodeX, const uint64_t nodeY, const T initial_temp);
+	Nodes(const uint64_t nodeX, const uint64_t nodeY, const T initial_temp,
+	      const size_t grain_size = 2);
 	virtual ~Nodes() = default;
 
-	void setWallSources(const T& northTemp, const T& eastTemp, const T& southTemp, const T& westTemp);
+	void setWallSource(const enum Wall wall, const T& temp);
 	void setHeatSource(const uint64_t& posX, const uint64_t& posY, const T& temp);
 	void setTemperature(const uint64_t posX, const uint64_t posY, const T temp);
 	void canUseThreads(const bool choice) noexcept(true);
@@ -65,13 +76,17 @@ public:
 
 protected:
 	void initBuffer(const T initial_temp);
-	void calculateWThread(const prec_t& epsilon);
+	void calculateWThread(const prec_t epsilon);
+	void calculateWoutThread(const prec_t epsilon);
+	void calculateOuterNodes(void);
 		
 private:
 	bool _hasHeatSource, _hasCalculated, _canUseThreads;
 	uint64_t _nodeX, _nodeY, _itterCnt;
 	std::vector<std::vector<std::pair<T, bool>>> _nodes, _nodesOld;
 	std::chrono::time_point<std::chrono::high_resolution_clock> _startTime, _endTime;
+	const size_t grain_size_;
+	prec_t diff_;
 };
 
 template<typename T1> std::ostream& operator<<(std::ostream&, const Nodes<T1>&);

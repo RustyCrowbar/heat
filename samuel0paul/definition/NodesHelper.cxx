@@ -34,13 +34,12 @@ SOFTWARE.
 #include <mutex>
 
 #include "../header/NodesHelper.h"
+#include "../header/defs.h"
 
 using std::cout;	using std::endl;
 using std::cin;
 using std::clog;
 using std::make_pair;
-
-using prec_t = long double;
 
 namespace HMT
 {
@@ -84,7 +83,7 @@ void NodesHelper<T>::init(void)
 	this->_nodes.setWallTemp(this->_tempNorth, this->_tempEast, this->_tempSouth, this->_tempWest);
 
 	{
-		uint64_t posX = 0, posY = 0;
+		dim_t posX = 0, posY = 0;
 		T temp = 0;
 		cout << "Does this surface have any Heat Source? (y/n): ";
 		cin >> heatSourceChoice;
@@ -108,7 +107,7 @@ void NodesHelper<T>::init(void)
 		}
 	}
 
-	for (const std::pair<std::pair<uint64_t, uint64_t>, T>& i : this->_heatSources) {
+	for (const std::pair<std::pair<dim_t, dim_t>, T>& i : this->_heatSources) {
 		this->_nodes.setHeatSource(
 			i.first.first,
 			i.first.second,
@@ -119,9 +118,9 @@ void NodesHelper<T>::init(void)
 }
 
 template<typename T>
-void NodesHelper<T>::addHeatSource(std::initializer_list<std::pair<std::pair<uint64_t, uint64_t>, T>>& lst)
+void NodesHelper<T>::addHeatSource(std::initializer_list<std::pair<std::pair<dim_t, dim_t>, T>>& lst)
 {
-	for (const std::pair<std::pair<uint64_t, uint64_t>, T>& i : lst) {
+	for (const std::pair<std::pair<dim_t, dim_t>, T>& i : lst) {
 		this->_heatSources.push_back(i);
 		this->_nodes.setHeatSource(
 			i.first.first,
@@ -163,8 +162,8 @@ durationFormat NodesHelper<T>::getDuration() const
 template<typename T>
 std::ostream& operator<<(std::ostream& os, const NodesHelper<T>& obj)
 {
-	for (uint64_t i = 0; i < obj._nodeX; ++i) {
-		for (uint64_t j = 0; j < obj._nodeY; ++j) {
+	for (dim_t i = 0; i < obj._nodeX; ++i) {
+		for (dim_t j = 0; j < obj._nodeY; ++j) {
 			cout << obj._nodes.getTemp(i, j) << ", ";
 		}
 		cout << endl;
