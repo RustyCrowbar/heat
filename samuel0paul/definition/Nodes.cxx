@@ -175,13 +175,14 @@ void Nodes<T>::testBuffers(void) const
 
 template<typename T>
 Nodes<T>::Nodes(const dim_t nodeX, const dim_t nodeY,
-		const T initial_temp)
+		const T initial_temp, const size_t grain_size)
 	: _hasHeatSource{false}
 	, _hasCalculated{false}
 	, _canUseThreads{false}
 	, _nodeX{nodeX}
 	, _nodeY{nodeY}
 	, _itterCnt{0}
+	, grain_size_{grain_size}
 {
 	initBuffer(initial_temp);
 }
@@ -413,7 +414,7 @@ void Nodes<T>::calculateWThread(const prec_t epsilon)
 
 	_startTime = std::chrono::high_resolution_clock::now();
 
-	size_t iter_cnt = 2;
+	size_t iter_cnt = grain_size_;
 	tbb::task_group_context tbb_context;
 	graph graph(tbb_context);
 

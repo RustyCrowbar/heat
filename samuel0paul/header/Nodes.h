@@ -53,7 +53,8 @@ public:
 	};
 
 	Nodes() = default;
-	Nodes(const uint64_t nodeX, const uint64_t nodeY, const T initial_temp);
+	Nodes(const uint64_t nodeX, const uint64_t nodeY, const T initial_temp,
+	      const size_t grain_size = 2);
 	virtual ~Nodes() = default;
 
 	void setWallSource(const enum Wall wall, const T& temp);
@@ -84,7 +85,7 @@ private:
 	uint64_t _nodeX, _nodeY, _itterCnt;
 	std::vector<std::vector<std::pair<T, bool>>> _nodes, _nodesOld;
 	std::chrono::time_point<std::chrono::high_resolution_clock> _startTime, _endTime;
-
+	const size_t grain_size_;
 	prec_t diff_;
 };
 

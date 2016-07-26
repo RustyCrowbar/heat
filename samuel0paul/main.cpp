@@ -30,8 +30,18 @@ using std::cin;
 using std::make_pair;
 
 
+static void print_usage(const char* program_name)
+{
+	std::cout << "Usage: " << program_name << " [ " <<
+		"-x width | " <<
+		"-y height | " <<
+		"-e epsilon | " <<
+		"-p[grain_size] ]" <<
+		std::endl;
+}
+
 static void print_info(dim_t x_len, dim_t y_len, prec_t epsilon,
-		       bool using_threads)
+		       bool using_threads, size_t grain_size)
 {
 	cout << std::nounitbuf;
 	cout << std::setprecision(4) << std::fixed << std::boolalpha;
@@ -48,7 +58,10 @@ static void print_info(dim_t x_len, dim_t y_len, prec_t epsilon,
 		<< "\t" << y_len << " lines" << endl
 		<< "\t" << x_len << " columns" << endl
 		<< "\t" << "Precision: " << epsilon << endl
-		<< "\t" << "Using parallel version: " << using_threads << endl;
+		<< "\t" << "Using parallel version: " << using_threads;
+	if (using_threads)
+		std::cout << " [Granularity:" << grain_size << "]";
+	std::cout << std::endl;
 }
 
 static bool check_config(struct Config& config, dim_t x_len, dim_t y_len)
@@ -91,11 +104,12 @@ int main(int argc, char *argv[])
 	dim_t y_len = 30;
 	prec_t epsilon = 1.0;
 	bool using_threads = false;
+	size_t grain_size = 2;
 	unsigned long long ticks = 0;
 	int opt;
 	struct Config conf;
 
-	while ((opt = getopt(argc, argv, "x:y:e:ph")) != -1)
+	while ((opt = getopt(argc, argv, "x:y:e:p::h")) != -1)
 	{
 		switch (opt)
 		{
@@ -110,17 +124,19 @@ int main(int argc, char *argv[])
 			break;
 		case 'p':
 			using_threads = true;
+			if (optarg)
+				grain_size = boost::lexical_cast<size_t>(optarg);
 			break;
 		case 'h':
-			printf("Usage: %s [-x width | -y height | -e epsilon | -p]\n", argv[0]);
+			print_usage(argv[0]);
 			printf("\t-x width  : set number of columns\n");
 			printf("\t-y height : set number of lines\n");
 			printf("\t-e epsilon: set precision\n");
-			printf("\t-p        : use parallel version\n");
+			printf("\t-p[arg]   : use parallel version with granularity=arg (default:2)\n");
 			printf("\t-h        : show this help\n");
 			return 0;
 		default:
-			printf("Usage: %s [-w width | -h height | -e epsilon | -p]\n", argv[0]);
+			print_usage(argv[0]);
 			return 1;
 		}
 	}
@@ -136,11 +152,11 @@ int main(int argc, char *argv[])
 		return 2;
 	}
 
-	print_info(x_len, y_len, epsilon, using_threads);
+	print_info(x_len, y_len, epsilon, using_threads, grain_size);
 	print_config(conf);
 	std::cout << "######" << std::endl << std::endl;
 
-	HMT::Nodes<prec_t> nodes(x_len, y_len, conf.initial_temp);
+	HMT::Nodes<prec_t> nodes(x_len, y_len, conf.initial_temp, grain_size);
 	nodes.canUseThreads(using_threads);
 	apply_config(nodes, conf);
 	while (!nodes.hasCalculated())
