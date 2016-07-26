@@ -12,8 +12,9 @@ std::vector<int> get_temperatures() {
 	return res;
 }
 
-int main() {
+//Example
+/*int main() {
 	std::vector<int> temps = get_temperatures();
 	for (int i : temps)
 		std::cout << "temp: '" << i << "';"<< std::endl;
-}
+}*/
