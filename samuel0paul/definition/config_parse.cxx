@@ -11,7 +11,7 @@ prec_t read_temp(std::string str)
 {
 	if (str.compare(0, 6, "sensor") == 0) {
 		uint32_t nb = std::stoi(str.substr(6, 42));
-		std::cout << "using sensor '" << nb << "', reading '" << temps[nb] << "'C" << std::endl;
+		std::cout << "using sensor '" << nb << "', reading '" << temps[nb] / 1000 << "'C" << std::endl;
 		return boost::lexical_cast<prec_t>(temps[nb]) / 1000;
 	} else
 		return boost::lexical_cast<prec_t>(str) / 1000;
