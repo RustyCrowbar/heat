@@ -139,10 +139,9 @@ private:
 template<typename T>
 std::chrono::nanoseconds Nodes<T>::getDuration(void) const
 {
-	if (this->_hasCalculated) {
-		return std::chrono::duration_cast<std::chrono::nanoseconds>(this->_endTime - this->_startTime);
+	if (_hasCalculated) {
+		return std::chrono::duration_cast<std::chrono::nanoseconds>(_endTime - _startTime);
 	} else {
-		//!TODO	implement error handling and notification
 		return std::chrono::nanoseconds(0);
 	}
 }
@@ -150,10 +149,9 @@ std::chrono::nanoseconds Nodes<T>::getDuration(void) const
 template<typename T>
 uint64_t Nodes<T>::getItterCount(void) const
 {
-	if (this->_hasCalculated)
-		return this->_itterCnt;
+	if (_hasCalculated)
+		return _itterCnt;
 	else {
-		//!TODO	implement error handling and notification
 		return 0;
 	}
 }
@@ -161,15 +159,15 @@ uint64_t Nodes<T>::getItterCount(void) const
 template<typename T>
 void Nodes<T>::testBuffers(void) const
 {
-	for (dim_t i = 0; i < this->_nodeY; ++i) {
-		for (dim_t j = 0; j < this->_nodeX; ++j) {
-			cout << this->_nodes[i][j].first << ", ";
+	for (dim_t i = 0; i < _nodeY; ++i) {
+		for (dim_t j = 0; j < _nodeX; ++j) {
+			cout << _nodes[i][j].first << ", ";
 		}
 		cout << endl;
 	}
-	for (dim_t i = 0; i < this->_nodeY; ++i) {
-		for (dim_t j = 0; j < this->_nodeX; ++j) {
-			cout << this->_nodesOld[i][j].first << ", ";
+	for (dim_t i = 0; i < _nodeY; ++i) {
+		for (dim_t j = 0; j < _nodeX; ++j) {
+			cout << _nodesOld[i][j].first << ", ";
 		}
 		cout << endl;
 	}
@@ -185,29 +183,29 @@ Nodes<T>::Nodes(const dim_t nodeX, const dim_t nodeY,
 	, _nodeY{nodeY}
 	, _itterCnt{0}
 {
-	this->initBuffer(initial_temp);
+	initBuffer(initial_temp);
 }
 
 template<typename T>
 void Nodes<T>::initBuffer(const T initial_temp)
 {
-	this->_nodes.reserve(this->_nodeY);
-	this->_nodesOld.reserve(this->_nodeY);
-	for (dim_t i = 0; i < this->_nodeY; ++i) {
+	_nodes.reserve(_nodeY);
+	_nodesOld.reserve(_nodeY);
+	for (dim_t i = 0; i < _nodeY; ++i) {
 		std::vector<std::pair<T, bool>> tmp;
-		tmp.reserve(this->_nodeX);
-		for (dim_t j = 0; j < this->_nodeX; ++j) {
+		tmp.reserve(_nodeX);
+		for (dim_t j = 0; j < _nodeX; ++j) {
 			tmp.push_back(make_pair(initial_temp, false));
 		}
-		this->_nodes.push_back(tmp);
-		this->_nodesOld.push_back(std::move(tmp));
+		_nodes.push_back(tmp);
+		_nodesOld.push_back(std::move(tmp));
 	}
-	for (dim_t i = 0; i < this->_nodeY; i++) {
-		this->_nodes[i].shrink_to_fit();
-		this->_nodesOld[i].shrink_to_fit();
+	for (dim_t i = 0; i < _nodeY; i++) {
+		_nodes[i].shrink_to_fit();
+		_nodesOld[i].shrink_to_fit();
 	}
-	this->_nodes.shrink_to_fit();
-	this->_nodesOld.shrink_to_fit();
+	_nodes.shrink_to_fit();
+	_nodesOld.shrink_to_fit();
 }
 
 template<typename T>
@@ -216,20 +214,20 @@ void Nodes<T>::setWallSource(const enum Wall wall, const T& temp)
 	switch (wall)
 	{
 	case NORTH:
-		for (dim_t i = 0; i < this->_nodeX; ++i)
+		for (dim_t i = 0; i < _nodeX; ++i)
 			setHeatSource(i, 0, temp);
 		break;
 
 	case EAST:
-		for (dim_t i = 0; i < this->_nodeY; ++i)
-			setHeatSource(this->_nodeX - 1, i, temp);
+		for (dim_t i = 0; i < _nodeY; ++i)
+			setHeatSource(_nodeX - 1, i, temp);
 		break;
 	case SOUTH:
-		for (dim_t i = 0; i < this->_nodeX; ++i)
-			setHeatSource(i, this->_nodeY - 1, temp);
+		for (dim_t i = 0; i < _nodeX; ++i)
+			setHeatSource(i, _nodeY - 1, temp);
 		break;
 	case WEST:
-		for (dim_t i = 0; i < this->_nodeY; ++i)
+		for (dim_t i = 0; i < _nodeY; ++i)
 			setHeatSource(0, i, temp);
 		break;
 	default:
@@ -241,40 +239,39 @@ void Nodes<T>::setWallSource(const enum Wall wall, const T& temp)
 template<typename T>
 void Nodes<T>::setHeatSource(const dim_t& posX, const dim_t& posY, const T& temp)
 {
-	this->_hasHeatSource = true;
-	this->_nodes[posY][posX].first = temp;
-	this->_nodes[posY][posX].second = true;
+	_hasHeatSource = true;
+	_nodes[posY][posX].first = temp;
+	_nodes[posY][posX].second = true;
 }
 
 template <typename T>
 void Nodes<T>::setTemperature(const dim_t posX, const dim_t posY, const T temp)
 {
-	this->_nodes[posY][posX].first = temp;
+	_nodes[posY][posX].first = temp;
 }
 
 template<typename T>
 void Nodes<T>::canUseThreads(const bool choice) noexcept(true)
 {
-	this->_canUseThreads = choice;
+	_canUseThreads = choice;
 }
 
 template<typename T>
 bool Nodes<T>::canUseThreads(void) const noexcept(true)
 {
-	return this->_canUseThreads;
+	return _canUseThreads;
 }
 
 template<typename T>
 bool Nodes<T>::hasCalculated(void) const
 {
-	return this->_hasCalculated;
+	return _hasCalculated;
 }
 
 template <typename T>
 void Nodes<T>::calculate(const prec_t epsilon)
 {
-	// This is an ugly solution. Change it sometime.
-	if (this->_canUseThreads)
+	if (_canUseThreads)
 		calculateWThread(epsilon);
 	else
 		calculateWoutThread(epsilon);
@@ -283,36 +280,36 @@ void Nodes<T>::calculate(const prec_t epsilon)
 template<typename T>
 void Nodes<T>::calculateWoutThread(const prec_t epsilon)
 {
-	if (!this->_hasCalculated) {
-		this->_startTime = std::chrono::high_resolution_clock::now();
-		++(this->_itterCnt);
-		for (dim_t i = 0; i < this->_nodeY; ++i)
-			for (dim_t j = 0; j < this->_nodeX; ++j)
-				this->_nodesOld[i][j] = this->_nodes[i][j];
+	if (!_hasCalculated) {
+		_startTime = std::chrono::high_resolution_clock::now();
+		++(_itterCnt);
+		for (dim_t i = 0; i < _nodeY; ++i)
+			for (dim_t j = 0; j < _nodeX; ++j)
+				_nodesOld[i][j] = _nodes[i][j];
 
 		calculateOuterNodes();
 
 		prec_t diff = 0.0f;
 
 		// Every non-border node
-		for (dim_t i = 1; i < this->_nodeY - 1; ++i) {
-			for (dim_t j = 1; j < this->_nodeX - 1; ++j) {
-				if (this->_nodes[i][j].second != true) {
-					this->_nodes[i][j].first =
-						(this->_nodesOld[i - 1][j].first +
-						 this->_nodesOld[i + 1][j].first +
-						 this->_nodesOld[i][j - 1].first +
-						 this->_nodesOld[i][j + 1].first)
+		for (dim_t i = 1; i < _nodeY - 1; ++i) {
+			for (dim_t j = 1; j < _nodeX - 1; ++j) {
+				if (_nodes[i][j].second != true) {
+					_nodes[i][j].first =
+						(_nodesOld[i - 1][j].first +
+						 _nodesOld[i + 1][j].first +
+						 _nodesOld[i][j - 1].first +
+						 _nodesOld[i][j + 1].first)
 						/ 4;
-					if (diff < std::fabs(this->_nodesOld[i][j].first - this->_nodes[i][j].first)) {
-						diff = std::fabs(this->_nodesOld[i][j].first - this->_nodes[i][j].first);
+					if (diff < std::fabs(_nodesOld[i][j].first - _nodes[i][j].first)) {
+						diff = std::fabs(_nodesOld[i][j].first - _nodes[i][j].first);
 					}
 				}
 			}
 		}
-		this->_endTime = std::chrono::high_resolution_clock::now();
+		_endTime = std::chrono::high_resolution_clock::now();
 		if (diff <= epsilon)
-			this->_hasCalculated = true;
+			_hasCalculated = true;
 	}
 }
 
@@ -320,72 +317,72 @@ template <typename T>
 void Nodes<T>::calculateOuterNodes(void)
 {
 	// Corner nodes
-	if (!this->_nodes[0][0].second)
+	if (!_nodes[0][0].second)
 	{
-		this->_nodes[0][0].first =
-			(this->_nodesOld[0][1].first +
-			 this->_nodesOld[1][0].first)
-			/ 2;
+		_nodes[0][0].first =
+			(_nodesOld[0][1].first +
+			 _nodesOld[1][0].first)
+			 / 2;
 	}
-	if (!this->_nodes[0][this->_nodeX - 1].second)
+	if (!_nodes[0][_nodeX - 1].second)
 	{
-		this->_nodes[0][this->_nodeX - 1].first =
-			(this->_nodesOld[0][this->_nodeX - 2].first +
-			 this->_nodesOld[1][this->_nodeX - 1].first)
-			/ 2;
+		_nodes[0][_nodeX - 1].first =
+			(_nodesOld[0][_nodeX - 2].first +
+			 _nodesOld[1][_nodeX - 1].first)
+			 / 2;
 	}
-	if (!this->_nodes[this->_nodeY - 1][0].second)
+	if (!_nodes[_nodeY - 1][0].second)
 	{
-		this->_nodes[this->_nodeY - 1][0].first =
-			(this->_nodesOld[this->_nodeY - 1][1].first +
-			 this->_nodesOld[this->_nodeY - 2][0].first)
-			/ 2;
+		_nodes[_nodeY - 1][0].first =
+			(_nodesOld[_nodeY - 1][1].first +
+			 _nodesOld[_nodeY - 2][0].first)
+			 / 2;
 	}
-	if (!this->_nodes[this->_nodeY - 1][this->_nodeX - 1].second)
+	if (!_nodes[_nodeY - 1][_nodeX - 1].second)
 	{
-		this->_nodes[this->_nodeY - 1][this->_nodeX - 1].first =
-			(this->_nodesOld[this->_nodeY - 1][this->_nodeX - 2].first +
-			 this->_nodesOld[this->_nodeY - 2][this->_nodeX - 1].first)
-			/ 2;
+		_nodes[_nodeY - 1][_nodeX - 1].first =
+			(_nodesOld[_nodeY - 1][_nodeX - 2].first +
+			 _nodesOld[_nodeY - 2][_nodeX - 1].first)
+			 / 2;
 	}
 
 	// Border nodes
-	for (dim_t i = 1; i < this->_nodeY - 1; ++i)
+	for (dim_t i = 1; i < _nodeY - 1; ++i)
 	{
-		if (!this->_nodes[i][0].second)
+		if (!_nodes[i][0].second)
 		{
-			this->_nodes[i][0].first =
-				(this->_nodesOld[i][1].first +
-				 this->_nodesOld[i - 1][0].first +
-				 this->_nodesOld[i + 1][0].first)
-				/ 3;
+			_nodes[i][0].first =
+				(_nodesOld[i][1].first +
+				 _nodesOld[i - 1][0].first +
+				 _nodesOld[i + 1][0].first)
+				 / 3;
 		}
-		if (!this->_nodes[i][this->_nodeX - 1].second)
+		if (!_nodes[i][_nodeX - 1].second)
 		{
-			this->_nodes[i][this->_nodeX - 1].first =
-				(this->_nodesOld[i][this->_nodeX - 2].first +
-				 this->_nodesOld[i - 1][this->_nodeX - 1].first +
-				 this->_nodesOld[i + 1][this->_nodeX - 1].first)
-				/ 3;
+			_nodes[i][_nodeX - 1].first =
+				(_nodesOld[i][_nodeX - 2].first +
+				 _nodesOld[i - 1][_nodeX - 1].first +
+				 _nodesOld[i + 1][_nodeX - 1].first)
+				 / 3;
 		}
 	}
-	for (dim_t j = 1; j < this->_nodeX - 1; ++j)
+	for (dim_t j = 1; j < _nodeX - 1; ++j)
 	{
-		if (!this->_nodes[0][j].second)
+		if (!_nodes[0][j].second)
 		{
-			this->_nodes[0][j].first =
-				(this->_nodesOld[1][j].first +
-				 this->_nodesOld[0][j - 1].first +
-				 this->_nodesOld[0][j + 1].first)
-				/ 3;
+			_nodes[0][j].first =
+				(_nodesOld[1][j].first +
+				 _nodesOld[0][j - 1].first +
+				 _nodesOld[0][j + 1].first)
+				 / 3;
 		}
-		if (!this->_nodes[this->_nodeY - 1][j].second)
+		if (!_nodes[_nodeY - 1][j].second)
 		{
-			this->_nodes[this->_nodeY - 1][j].first =
-				(this->_nodesOld[this->_nodeY - 2][j].first +
-				 this->_nodesOld[this->_nodeY - 1][j - 1].first +
-				 this->_nodesOld[this->_nodeY - 1][j + 1].first)
-				/ 3;
+			_nodes[_nodeY - 1][j].first =
+				(_nodesOld[_nodeY - 2][j].first +
+				 _nodesOld[_nodeY - 1][j - 1].first +
+				 _nodesOld[_nodeY - 1][j + 1].first)
+				 / 3;
 		}
 
 	}
@@ -394,26 +391,26 @@ void Nodes<T>::calculateOuterNodes(void)
 template <typename T>
 void Nodes<T>::clear(const T temp)
 {
-	for (size_t i = 0; i < this->_nodeX; ++i)
+	for (size_t i = 0; i < _nodeX; ++i)
 	{
-		for (size_t j = 0; j < this->_nodeY; ++j)
+		for (size_t j = 0; j < _nodeY; ++j)
 		{
-			this->nodes_[i][j].first = temp;
-			this->nodes_[i][j].second = false;
+			_nodes[i][j].first = temp;
+			_nodes[i][j].second = false;
 		}
 	}
 
-	this->_hasCalculated = false;
-	this->_itterCnt = 0;
+	_hasCalculated = false;
+	_itterCnt = 0;
 }
 
 template<typename T>
 void Nodes<T>::calculateWThread(const prec_t epsilon)
 {
-	this->_startTime = std::chrono::high_resolution_clock::now();
-	++(this->_itterCnt);
+	_startTime = std::chrono::high_resolution_clock::now();
+	++(_itterCnt);
 
-	size_t iter_cnt = 4;
+	size_t iter_cnt = 2;
 	tbb::task_group_context tbb_context;
 	graph graph(tbb_context);
 
@@ -426,107 +423,91 @@ void Nodes<T>::calculateWThread(const prec_t epsilon)
 	// Node to copy last iteration nodes to "old" matrix
 	node_t copy_to_old(graph, [this](msg_t&) {
 
-		for (dim_t i = 0; i < this->_nodeY; ++i)
-			for (dim_t j = 0; j < this->_nodeX; ++j)
-				this->_nodesOld[i][j] = this->_nodes[i][j];
+		for (dim_t i = 0; i < _nodeY; ++i)
+			for (dim_t j = 0; j < _nodeX; ++j)
+				_nodesOld[i][j] = _nodes[i][j];
 	});
 
 	// Node to compute temperature on all inner nodes
 	node_t inner_nodes(graph, [this](msg_t&) {
 
-		tbb::parallel_for(tbb::blocked_range2d<size_t>(1, this->_nodeY - 1,
-							       1, this->_nodeX - 1),
-				  [this](const tbb::blocked_range2d<size_t>& r) {
+		TBB_Calculator<decltype(_nodes.begin())>
+			calculator(_nodes.begin(), _nodesOld.begin());
 
-				  dim_t row_begin = r.rows().begin();
-				  dim_t row_end = r.rows().end();
-				  dim_t col_begin = r.cols().begin();
-				  dim_t col_end = r.cols().end();
-
-				  for (dim_t i = row_begin; i < row_end; ++i) {
-					for (dim_t j = col_begin; j < col_end; ++j) {
-						if (!_nodes[i][j].second) {
-							_nodes[i][j].first =
-								(_nodesOld[i - 1][j].first +
-								 _nodesOld[i + 1][j].first +
-								 _nodesOld[i][j - 1].first +
-								 _nodesOld[i][j + 1].first)
-								 / 4;
-						}
-					}
-				  }
-		});
+		tbb::parallel_for(tbb::blocked_range2d<size_t>(1, _nodeY - 1,
+							       1, _nodeX - 1),
+				  calculator);
 	});
 
 	// Node to compute temperature on all outer nodes
 	node_t outer_nodes(graph, [this](msg_t&) {
 
 		// Corner nodes
-		if (!this->_nodes[0][0].second)
+		if (!_nodes[0][0].second)
 		{
-			this->_nodes[0][0].first =
-				(this->_nodesOld[0][1].first +
-				 this->_nodesOld[1][0].first)
+			_nodes[0][0].first =
+				(_nodesOld[0][1].first +
+				 _nodesOld[1][0].first)
 				/ 2;
 		}
-		if (!this->_nodes[0][this->_nodeX - 1].second)
+		if (!_nodes[0][_nodeX - 1].second)
 		{
-			this->_nodes[0][this->_nodeX - 1].first =
-				(this->_nodesOld[0][this->_nodeX - 2].first +
-				 this->_nodesOld[1][this->_nodeX - 1].first)
+			_nodes[0][_nodeX - 1].first =
+				(_nodesOld[0][_nodeX - 2].first +
+				 _nodesOld[1][_nodeX - 1].first)
 				/ 2;
 		}
-		if (!this->_nodes[this->_nodeY - 1][0].second)
+		if (!_nodes[_nodeY - 1][0].second)
 		{
-			this->_nodes[this->_nodeY - 1][0].first =
-				(this->_nodesOld[this->_nodeY - 1][1].first +
-				 this->_nodesOld[this->_nodeY - 2][0].first)
+			_nodes[_nodeY - 1][0].first =
+				(_nodesOld[_nodeY - 1][1].first +
+				 _nodesOld[_nodeY - 2][0].first)
 				/ 2;
 		}
-		if (!this->_nodes[this->_nodeY - 1][this->_nodeX - 1].second)
+		if (!_nodes[_nodeY - 1][_nodeX - 1].second)
 		{
-			this->_nodes[this->_nodeY - 1][this->_nodeX - 1].first =
-				(this->_nodesOld[this->_nodeY - 1][this->_nodeX - 2].first +
-				 this->_nodesOld[this->_nodeY - 2][this->_nodeX - 1].first)
+			_nodes[_nodeY - 1][_nodeX - 1].first =
+				(_nodesOld[_nodeY - 1][_nodeX - 2].first +
+				 _nodesOld[_nodeY - 2][_nodeX - 1].first)
 				/ 2;
 		}
 
 		// Border nodes
-		for (dim_t i = 1; i < this->_nodeY - 1; ++i)
+		for (dim_t i = 1; i < _nodeY - 1; ++i)
 		{
-			if (!this->_nodes[i][0].second)
+			if (!_nodes[i][0].second)
 			{
-				this->_nodes[i][0].first =
-					(this->_nodesOld[i][1].first +
-					 this->_nodesOld[i - 1][0].first +
-					 this->_nodesOld[i + 1][0].first)
+				_nodes[i][0].first =
+					(_nodesOld[i][1].first +
+					 _nodesOld[i - 1][0].first +
+					 _nodesOld[i + 1][0].first)
 					/ 3;
 			}
-			if (!this->_nodes[i][this->_nodeX - 1].second)
+			if (!_nodes[i][_nodeX - 1].second)
 			{
-				this->_nodes[i][this->_nodeX - 1].first =
-					(this->_nodesOld[i][this->_nodeX - 2].first +
-					 this->_nodesOld[i - 1][this->_nodeX - 1].first +
-					 this->_nodesOld[i + 1][this->_nodeX - 1].first)
+				_nodes[i][_nodeX - 1].first =
+					(_nodesOld[i][_nodeX - 2].first +
+					 _nodesOld[i - 1][_nodeX - 1].first +
+					 _nodesOld[i + 1][_nodeX - 1].first)
 					/ 3;
 			}
 		}
-		for (dim_t j = 1; j < this->_nodeX - 1; ++j)
+		for (dim_t j = 1; j < _nodeX - 1; ++j)
 		{
-			if (!this->_nodes[0][j].second)
+			if (!_nodes[0][j].second)
 			{
-				this->_nodes[0][j].first =
-					(this->_nodesOld[1][j].first +
-					 this->_nodesOld[0][j - 1].first +
-					 this->_nodesOld[0][j + 1].first)
+				_nodes[0][j].first =
+					(_nodesOld[1][j].first +
+					 _nodesOld[0][j - 1].first +
+					 _nodesOld[0][j + 1].first)
 					/ 3;
 			}
-			if (!this->_nodes[this->_nodeY - 1][j].second)
+			if (!_nodes[_nodeY - 1][j].second)
 			{
-				this->_nodes[this->_nodeY - 1][j].first =
-					(this->_nodesOld[this->_nodeY - 2][j].first +
-					 this->_nodesOld[this->_nodeY - 1][j - 1].first +
-					 this->_nodesOld[this->_nodeY - 1][j + 1].first)
+				_nodes[_nodeY - 1][j].first =
+					(_nodesOld[_nodeY - 2][j].first +
+					 _nodesOld[_nodeY - 1][j - 1].first +
+					 _nodesOld[_nodeY - 1][j + 1].first)
 					/ 3;
 			}
 
@@ -537,13 +518,13 @@ void Nodes<T>::calculateWThread(const prec_t epsilon)
 	node_t check_precision(graph, [this](msg_t&) {
 
 		// This is ugly, but I can't manage another solution, sorry.
-		TBB_Reductor<decltype(this->_nodes.begin())>
-			reductor(this->_nodes.begin(), this->_nodesOld.begin());
+		TBB_Reductor<decltype(_nodes.begin())>
+			reductor(_nodes.begin(), _nodesOld.begin());
 
-		tbb::parallel_reduce(tbb::blocked_range2d<size_t>(1, this->_nodeY - 1,
-								  1, this->_nodeX - 1),
+		tbb::parallel_reduce(tbb::blocked_range2d<size_t>(1, _nodeY - 1,
+								  1, _nodeX - 1),
 				     reductor);
-		this->diff_ = reductor.diff;
+		diff_ = reductor.diff;
 	});
 
 	/* Link all nodes together. check_stop and check_precision are
@@ -560,38 +541,17 @@ void Nodes<T>::calculateWThread(const prec_t epsilon)
 	check_stop.try_put(continue_msg());
 	graph.wait_for_all();
 
-	this->_endTime = std::chrono::high_resolution_clock::now();
-	if (this->diff_ <= epsilon)
-		this->_hasCalculated = true;
-
-	/*
-	TBB_Calculator<decltype(this->_nodes.begin())>
-		calculator(this->_nodes.begin(), this->_nodesOld.begin());
-	TBB_Reductor<decltype(this->_nodes.begin())>
-		reductor(this->_nodes.begin(), this->_nodesOld.begin());
-
-	// Compute a new iteration
-	tbb::parallel_for(tbb::blocked_range2d<size_t>(1, this->_nodeY - 1,
-						       1, this->_nodeX - 1),
-			  calculator);
-
-	// Find out if we should stop now
-	tbb::parallel_reduce(tbb::blocked_range2d<size_t>(1, this->_nodeY - 1,
-						          1, this->_nodeX - 1),
-			     reductor);
-	this->_endTime = std::chrono::high_resolution_clock::now();
-	if (reductor.diff <= epsilon)
-		this->_hasCalculated = true;
-	*/
+	_endTime = std::chrono::high_resolution_clock::now();
+	if (diff_ <= epsilon)
+		_hasCalculated = true;
 }
 
 template<typename T>
 T Nodes<T>::getTemp(const dim_t& posX, const dim_t& posY) const
 {
-	if (this->_hasCalculated)
-		return this->_nodes[posY][posX].first;
+	if (_hasCalculated)
+		return _nodes[posY][posX].first;
 	else {
-		//!TODO implement error handling or error throw mechanism
 		return 0;
 	}
 }
