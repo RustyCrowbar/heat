@@ -408,7 +408,6 @@ template<typename T>
 void Nodes<T>::calculateWThread(const prec_t epsilon)
 {
 	_startTime = std::chrono::high_resolution_clock::now();
-	++(_itterCnt);
 
 	size_t iter_cnt = 2;
 	tbb::task_group_context tbb_context;
@@ -422,6 +421,9 @@ void Nodes<T>::calculateWThread(const prec_t epsilon)
 
 	// Node to copy last iteration nodes to "old" matrix
 	node_t copy_to_old(graph, [this](msg_t&) {
+
+		// Increment iteration counter
+		++(_itterCnt);
 
 		for (dim_t i = 0; i < _nodeY; ++i)
 			for (dim_t j = 0; j < _nodeX; ++j)

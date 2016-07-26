@@ -156,7 +156,7 @@ int main(int argc, char *argv[])
 		outfile.close();
 	}
 	cout << "Time taken: " << ticks << "ns" << endl;
-	cout << "Iterations: " << iter << endl;
+	cout << "Iterations: " << nodes.getItterCount() << endl;
 
 	return 0;
 }
