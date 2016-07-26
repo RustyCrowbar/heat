@@ -1,10 +1,10 @@
-CXX_AUX = g++ -std=c++1y -Og -Wall -pthread -Wl,--no-as-needed
+CXX_AUX = g++ -std=c++1y -O3 -Wall -pthread -Wl,--no-as-needed
 MKDIR=mkdir -p
 
-objects = ./lib/Nodes.a ./lib/NodesHelper.a ./lib/config_parse.a
-debug_objects = ./lib/debug_Nodes.a ./lib/debug_NodesHelper.a ./lib/config_parse.a
+objects = ./lib/Nodes.a ./lib/NodesHelper.a ./lib/config_parse.a ./lib/sensors.a
+debug_objects = ./lib/debug_Nodes.a ./lib/debug_NodesHelper.a ./lib/config_parse.a ./lib/sensors.a
 
-libs = -lboost_regex -ltbb#_debug
+libs = -lboost_regex -ltbb -lboost_filesystem -lboost_system
 #definitions = -DTBB_USE_ASSERT -DTBB_USE_PERFORMANCE_WARNINGS
 
 defdir = definition

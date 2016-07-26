@@ -3,12 +3,26 @@
 #include <iostream>
 
 #include "../header/config_parse.h"
+#include "../header/sensors.hh"
 
+std::vector<int> temps;
+
+prec_t read_temp(std::string str)
+{
+	if (str.compare(0, 6, "sensor") == 0) {
+		uint32_t nb = std::stoi(str.substr(6, 42));
+		std::cout << "using sensor '" << nb << "', reading '" << temps[nb] << "'C" << std::endl;
+		return boost::lexical_cast<prec_t>(temps[nb]);
+	} else
+		return boost::lexical_cast<prec_t>(str);
+}
 
 bool parse_config(struct Config& config, const char* filename)
 {
 	std::string str;
 	std::ifstream confstr(filename);
+	temps = get_temperatures();
+	std::cout << "Got " << temps.size() << " values from sensors." << std::endl;
 
 	if (!confstr.is_open())
 	{
@@ -23,28 +37,28 @@ bool parse_config(struct Config& config, const char* filename)
 			// North wall source
 			config.north_source = true;
 			confstr >> str;
-			config.north_temp = boost::lexical_cast<prec_t>(str);
+			config.north_temp = read_temp(str);
 		}
 		else if (str.compare("east") == 0)
 		{
 			// East wall source
 			config.east_source = true;
 			confstr >> str;
-			config.east_temp = boost::lexical_cast<prec_t>(str);
+			config.east_temp = read_temp(str);
 		}
 		else if (str.compare("south") == 0)
 		{
 			// South wall source
 			config.south_source = true;
 			confstr >> str;
-			config.south_temp = boost::lexical_cast<prec_t>(str);
+			config.south_temp = read_temp(str);
 		}
 		else if (str.compare("west") == 0)
 		{
 			// West wall source
 			config.west_source = true;
 			confstr >> str;
-			config.west_temp = boost::lexical_cast<prec_t>(str);
+			config.west_temp = read_temp(str);
 		}
 		else if (str.compare("point_src") == 0)
 		{
@@ -54,7 +68,7 @@ bool parse_config(struct Config& config, const char* filename)
 			confstr >> str;
 			dim_t y = boost::lexical_cast<dim_t>(str);
 			confstr >> str;
-			prec_t temp = boost::lexical_cast<prec_t>(str);
+			prec_t temp = read_temp(str);
 			config.point_sources.emplace_back(x, y, temp);
 		}
 		else if (str.compare("point") == 0)
@@ -65,7 +79,7 @@ bool parse_config(struct Config& config, const char* filename)
 			confstr >> str;
 			dim_t y = boost::lexical_cast<dim_t>(str);
 			confstr >> str;
-			prec_t temp = boost::lexical_cast<prec_t>(str);
+			prec_t temp = read_temp(str);
 			config.point_initial_temps.emplace_back(x, y, temp);
 
 		}
@@ -73,7 +87,7 @@ bool parse_config(struct Config& config, const char* filename)
 		{
 			// Initialization temperature for all points
 			confstr >> str;
-			config.initial_temp = boost::lexical_cast<prec_t>(str);
+			config.initial_temp = read_temp(str);
 		}
 		else
 		{
