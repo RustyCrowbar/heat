@@ -280,37 +280,38 @@ void Nodes<T>::calculate(const prec_t epsilon)
 template<typename T>
 void Nodes<T>::calculateWoutThread(const prec_t epsilon)
 {
-	if (!_hasCalculated) {
-		_startTime = std::chrono::high_resolution_clock::now();
-		++(_itterCnt);
-		for (dim_t i = 0; i < _nodeY; ++i)
-			for (dim_t j = 0; j < _nodeX; ++j)
-				_nodesOld[i][j] = _nodes[i][j];
+	if (_hasCalculated)
+		return;
 
-		calculateOuterNodes();
+	_startTime = std::chrono::high_resolution_clock::now();
+	++(_itterCnt);
+	for (dim_t i = 0; i < _nodeY; ++i)
+		for (dim_t j = 0; j < _nodeX; ++j)
+			_nodesOld[i][j] = _nodes[i][j];
 
-		prec_t diff = 0.0f;
+	calculateOuterNodes();
 
-		// Every non-border node
-		for (dim_t i = 1; i < _nodeY - 1; ++i) {
-			for (dim_t j = 1; j < _nodeX - 1; ++j) {
-				if (_nodes[i][j].second != true) {
-					_nodes[i][j].first =
-						(_nodesOld[i - 1][j].first +
-						 _nodesOld[i + 1][j].first +
-						 _nodesOld[i][j - 1].first +
-						 _nodesOld[i][j + 1].first)
-						/ 4;
-					if (diff < std::fabs(_nodesOld[i][j].first - _nodes[i][j].first)) {
-						diff = std::fabs(_nodesOld[i][j].first - _nodes[i][j].first);
-					}
+	prec_t diff = 0.0f;
+
+	// Every non-border node
+	for (dim_t i = 1; i < _nodeY - 1; ++i) {
+		for (dim_t j = 1; j < _nodeX - 1; ++j) {
+			if (_nodes[i][j].second != true) {
+				_nodes[i][j].first =
+					(_nodesOld[i - 1][j].first +
+					 _nodesOld[i + 1][j].first +
+					 _nodesOld[i][j - 1].first +
+					 _nodesOld[i][j + 1].first)
+					/ 4;
+				if (diff < std::fabs(_nodesOld[i][j].first - _nodes[i][j].first)) {
+					diff = std::fabs(_nodesOld[i][j].first - _nodes[i][j].first);
 				}
 			}
 		}
-		_endTime = std::chrono::high_resolution_clock::now();
-		if (diff <= epsilon)
-			_hasCalculated = true;
 	}
+	_endTime = std::chrono::high_resolution_clock::now();
+	if (diff <= epsilon)
+		_hasCalculated = true;
 }
 
 template <typename T>
@@ -407,6 +408,9 @@ void Nodes<T>::clear(const T temp)
 template<typename T>
 void Nodes<T>::calculateWThread(const prec_t epsilon)
 {
+	if (_hasCalculated)
+		return;
+
 	_startTime = std::chrono::high_resolution_clock::now();
 
 	size_t iter_cnt = 2;
